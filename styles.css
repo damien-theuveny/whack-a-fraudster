@@ -1,0 +1,38 @@
+body {
+  margin: 0;
+}
+
+.welcome-container {
+  height: 100%;
+  text-align: center;
+}
+
+.grid-container {
+  position: absolute;
+  vertical-align: middle;
+  background: rgba(0,0,0,0.2);
+}
+
+.grid-container.grid-container--level1 {
+  width: 150px;
+  top: calc(50% - 75px);
+  left: calc(50% - 75px);
+}
+
+.grid-container.grid-container--level2 {
+  width: 250px;
+  top: calc(50% - 125px);
+  left: calc(50% - 125px);
+}
+
+.grid-item {
+  height: 50px;
+  width: 50px;
+  float: left;
+  border: #000 1px solid;
+  box-sizing: border-box;
+}
+
+.grid-logo {
+  background: #fff;
+}

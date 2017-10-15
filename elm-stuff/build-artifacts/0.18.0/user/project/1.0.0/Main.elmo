@@ -1,0 +1,230 @@
+var _user$project$Main$subscriptions = function (model) {
+	return _elm_lang$core$Platform_Sub$none;
+};
+var _user$project$Main$getRandomNumber = F2(
+	function (min, max) {
+		return A2(_elm_lang$core$Random$int, min, max);
+	});
+var _user$project$Main$Model = F4(
+	function (a, b, c, d) {
+		return {gameState: a, gridContents: b, level: c, score: d};
+	});
+var _user$project$Main$Results = {ctor: 'Results'};
+var _user$project$Main$Playing = {ctor: 'Playing'};
+var _user$project$Main$Welcome = {ctor: 'Welcome'};
+var _user$project$Main$initialModel = {gameState: _user$project$Main$Welcome, gridContents: _elm_lang$core$Dict$empty, level: _elm_lang$core$Maybe$Nothing, score: 0};
+var _user$project$Main$Level3 = {ctor: 'Level3'};
+var _user$project$Main$Level2 = {ctor: 'Level2'};
+var _user$project$Main$Level1 = {ctor: 'Level1'};
+var _user$project$Main$scoreToLevel = function (score) {
+	return (_elm_lang$core$Native_Utils.cmp(score, 350) < 0) ? _user$project$Main$Level1 : (((_elm_lang$core$Native_Utils.cmp(score, 350) > -1) && (_elm_lang$core$Native_Utils.cmp(score, 1000) < 0)) ? _user$project$Main$Level2 : _user$project$Main$Level3);
+};
+var _user$project$Main$Client = {ctor: 'Client'};
+var _user$project$Main$Fraudster = {ctor: 'Fraudster'};
+var _user$project$Main$Empty = {ctor: 'Empty'};
+var _user$project$Main$StartGame = {ctor: 'StartGame'};
+var _user$project$Main$NoOp = {ctor: 'NoOp'};
+var _user$project$Main$InitialiseLevel = {ctor: 'InitialiseLevel'};
+var _user$project$Main$CreateFraudsters = {ctor: 'CreateFraudsters'};
+var _user$project$Main$CreateClients = {ctor: 'CreateClients'};
+var _user$project$Main$update = F2(
+	function (msg, model) {
+		update:
+		while (true) {
+			var _p0 = msg;
+			switch (_p0.ctor) {
+				case 'ClickBox':
+					return {ctor: '_Tuple2', _0: model, _1: _elm_lang$core$Platform_Cmd$none};
+				case 'CreateClients':
+					return {ctor: '_Tuple2', _0: model, _1: _elm_lang$core$Platform_Cmd$none};
+				case 'CreateFraudsters':
+					return {ctor: '_Tuple2', _0: model, _1: _elm_lang$core$Platform_Cmd$none};
+				case 'InitialiseLevel':
+					var _p1 = A2(_user$project$Main$update, _user$project$Main$CreateFraudsters, model);
+					var updatedModelWithFraudsters = _p1._0;
+					var updatedCmdWithFraudsters = _p1._1;
+					var _p2 = A2(_user$project$Main$update, _user$project$Main$CreateClients, model);
+					var updatedModelWithClients = _p2._0;
+					var updatedCmdWithClients = _p2._1;
+					return {ctor: '_Tuple2', _0: updatedModelWithFraudsters, _1: updatedCmdWithFraudsters};
+				case 'NoOp':
+					return {ctor: '_Tuple2', _0: model, _1: _elm_lang$core$Platform_Cmd$none};
+				default:
+					var _v1 = _user$project$Main$InitialiseLevel,
+						_v2 = _elm_lang$core$Native_Utils.update(
+						model,
+						{
+							gameState: _user$project$Main$Playing,
+							level: _elm_lang$core$Maybe$Just(_user$project$Main$Level1)
+						});
+					msg = _v1;
+					model = _v2;
+					continue update;
+			}
+		}
+	});
+var _user$project$Main$init = A2(_user$project$Main$update, _user$project$Main$NoOp, _user$project$Main$initialModel);
+var _user$project$Main$ClickBox = function (a) {
+	return {ctor: 'ClickBox', _0: a};
+};
+var _user$project$Main$makeGrid = function (rows) {
+	return A2(
+		_elm_lang$core$List$map,
+		function (index) {
+			var floatRows = _elm_lang$core$Basics$toFloat(rows);
+			var logoItem = _elm_lang$core$Native_Utils.eq(
+				_elm_lang$core$Basics$toFloat(index),
+				((floatRows * floatRows) + 1) / 2) ? {
+				ctor: '::',
+				_0: _elm_lang$html$Html_Attributes$class('grid-logo'),
+				_1: {ctor: '[]'}
+			} : {ctor: '[]'};
+			return A2(
+				_elm_lang$html$Html$div,
+				A2(
+					_elm_lang$core$Basics_ops['++'],
+					{
+						ctor: '::',
+						_0: _elm_lang$html$Html_Attributes$class('grid-item'),
+						_1: {ctor: '[]'}
+					},
+					A2(
+						_elm_lang$core$Basics_ops['++'],
+						{
+							ctor: '::',
+							_0: _elm_lang$html$Html_Attributes$class(
+								A2(
+									_elm_lang$core$Basics_ops['++'],
+									'grid-item-',
+									_elm_lang$core$Basics$toString(index))),
+							_1: {ctor: '[]'}
+						},
+						A2(
+							_elm_lang$core$Basics_ops['++'],
+							logoItem,
+							{
+								ctor: '::',
+								_0: _elm_lang$html$Html_Events$onClick(
+									_user$project$Main$ClickBox(index)),
+								_1: {ctor: '[]'}
+							}))),
+				{ctor: '[]'});
+		},
+		A2(_elm_lang$core$List$range, 1, rows * rows));
+};
+var _user$project$Main$view = function (model) {
+	var _p3 = function () {
+		var _p4 = model.level;
+		if (_p4.ctor === 'Just') {
+			switch (_p4._0.ctor) {
+				case 'Level1':
+					return {
+						ctor: '_Tuple2',
+						_0: {
+							ctor: '::',
+							_0: _elm_lang$html$Html_Attributes$class('grid-container--level1'),
+							_1: {ctor: '[]'}
+						},
+						_1: _user$project$Main$makeGrid(3)
+					};
+				case 'Level2':
+					return {
+						ctor: '_Tuple2',
+						_0: {
+							ctor: '::',
+							_0: _elm_lang$html$Html_Attributes$class('grid-container--level2'),
+							_1: {ctor: '[]'}
+						},
+						_1: _user$project$Main$makeGrid(5)
+					};
+				default:
+					return {
+						ctor: '_Tuple2',
+						_0: {
+							ctor: '::',
+							_0: _elm_lang$html$Html_Attributes$class('grid-container--level3'),
+							_1: {ctor: '[]'}
+						},
+						_1: _user$project$Main$makeGrid(7)
+					};
+			}
+		} else {
+			return {
+				ctor: '_Tuple2',
+				_0: {ctor: '[]'},
+				_1: {ctor: '[]'}
+			};
+		}
+	}();
+	var levelClass = _p3._0;
+	var grid = _p3._1;
+	var _p5 = model.gameState;
+	switch (_p5.ctor) {
+		case 'Welcome':
+			return A2(
+				_elm_lang$html$Html$div,
+				{
+					ctor: '::',
+					_0: _elm_lang$html$Html_Attributes$class('welcome-container'),
+					_1: {ctor: '[]'}
+				},
+				{
+					ctor: '::',
+					_0: A2(
+						_elm_lang$html$Html$h1,
+						{ctor: '[]'},
+						{
+							ctor: '::',
+							_0: _elm_lang$html$Html$text('Welcome to Whack-a-Fraudster'),
+							_1: {ctor: '[]'}
+						}),
+					_1: {
+						ctor: '::',
+						_0: A2(
+							_elm_lang$html$Html$button,
+							{
+								ctor: '::',
+								_0: _elm_lang$html$Html_Events$onClick(_user$project$Main$StartGame),
+								_1: {ctor: '[]'}
+							},
+							{
+								ctor: '::',
+								_0: _elm_lang$html$Html$text('Start'),
+								_1: {ctor: '[]'}
+							}),
+						_1: {ctor: '[]'}
+					}
+				});
+		case 'Playing':
+			return A2(
+				_elm_lang$html$Html$div,
+				{ctor: '[]'},
+				{
+					ctor: '::',
+					_0: A2(
+						_elm_lang$html$Html$div,
+						A2(
+							_elm_lang$core$Basics_ops['++'],
+							{
+								ctor: '::',
+								_0: _elm_lang$html$Html_Attributes$class('grid-container'),
+								_1: {ctor: '[]'}
+							},
+							levelClass),
+						grid),
+					_1: {ctor: '[]'}
+				});
+		default:
+			return A2(
+				_elm_lang$html$Html$div,
+				{ctor: '[]'},
+				{
+					ctor: '::',
+					_0: _elm_lang$html$Html$text(
+						_elm_lang$core$Basics$toString(model.score)),
+					_1: {ctor: '[]'}
+				});
+	}
+};
+var _user$project$Main$main = _elm_lang$html$Html$program(
+	{init: _user$project$Main$init, view: _user$project$Main$view, update: _user$project$Main$update, subscriptions: _user$project$Main$subscriptions})();
