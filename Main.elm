@@ -6,6 +6,8 @@ import Html.Attributes exposing (..)
 import Html.Events exposing (..)
 import Html.Keyed
 import Random
+import Task
+import Time exposing (Time)
 
 
 main : Program Never Model Msg
@@ -27,6 +29,7 @@ type alias Model =
     , gridContents : Dict Int ContentType
     , level : Maybe Level
     , score : Int
+    , startedTime : Maybe Time
     }
 
 
@@ -36,12 +39,13 @@ initialModel =
     , gridContents = Dict.empty
     , level = Nothing
     , score = 0
+    , startedTime = Nothing
     }
 
 
 init : ( Model, Cmd Msg )
 init =
-    update NoOp initialModel
+    ( initialModel, getTime )
 
 
 
@@ -73,6 +77,7 @@ type Msg
     | InitialiseLevel
     | NoOp
     | StartGame
+    | StartedTime Time
 
 
 
@@ -92,20 +97,80 @@ update msg model =
             ( model, Cmd.none )
 
         InitialiseLevel ->
-            let
-                ( updatedModelWithClients, updatedCmdWithClients ) =
-                    update CreateClients model
-
-                ( updatedModelWithFraudsters, updatedCmdWithFraudsters ) =
-                    update CreateFraudsters model
-            in
-            ( updatedModelWithFraudsters, updatedCmdWithFraudsters )
+            ( model, Cmd.none )
 
         NoOp ->
             ( model, Cmd.none )
 
         StartGame ->
-            update InitialiseLevel { model | gameState = Playing, level = Just Level1 }
+            let
+                ( numberOfClients, numberOfFraudsters, rows ) =
+                    case updatedModel.level of
+                        Just Level1 ->
+                            ( 2, 1, 3 )
+
+                        Just Level2 ->
+                            ( 4, 2, 5 )
+
+                        Just Level3 ->
+                            ( 6, 3, 7 )
+
+                        Nothing ->
+                            ( 0, 0, 0 )
+
+                clientRandomList =
+                    case updatedModel.startedTime of
+                        Just time ->
+                            randomSequence numberOfClients 1 (rows * rows) (floor time)
+
+                        Nothing ->
+                            []
+
+                fraudsterRandomList =
+                    case updatedModel.startedTime of
+                        Just time ->
+                            randomSequence numberOfFraudsters 1 (rows * rows) (floor (time / 2))
+
+                        Nothing ->
+                            []
+
+                gridContents =
+                    List.range 1 (rows * rows)
+                        |> List.filter
+                            (\index ->
+                                let
+                                    floatRows =
+                                        toFloat rows
+                                in
+                                not (toFloat index == ((floatRows * floatRows + 1) / 2))
+                            )
+                        |> List.map
+                            (\index ->
+                                let
+                                    cellType =
+                                        if List.member index clientRandomList then
+                                            Client
+                                        else if List.member index fraudsterRandomList then
+                                            Fraudster
+                                        else
+                                            Empty
+                                in
+                                ( index, cellType )
+                            )
+                        |> Debug.log "test2"
+
+                ( updatedModel, updatedCmd ) =
+                    update
+                        InitialiseLevel
+                        { model
+                            | gameState = Playing
+                            , level = Just Level1
+                        }
+            in
+            ( updatedModel, updatedCmd )
+
+        StartedTime time ->
+            ( { model | startedTime = Just time }, Cmd.none )
 
 
 
@@ -144,9 +209,23 @@ view model =
             div [] [ text (toString model.score) ]
 
 
-getRandomNumber : Int -> Int -> Random.Generator Int
-getRandomNumber min max =
-    Random.int min max
+getTime =
+    Task.perform StartedTime Time.now
+
+
+randomSequence : Int -> Int -> Int -> Int -> List Int
+randomSequence numberOfValues min max seed =
+    let
+        generator =
+            Random.list numberOfValues (Random.int min max)
+
+        randomSeed =
+            Random.initialSeed seed
+
+        ( result, nextSeed ) =
+            Random.step generator randomSeed
+    in
+    result
 
 
 scoreToLevel : Int -> Level

@@ -1,18 +1,26 @@
 var _user$project$Main$subscriptions = function (model) {
 	return _elm_lang$core$Platform_Sub$none;
 };
-var _user$project$Main$getRandomNumber = F2(
-	function (min, max) {
-		return A2(_elm_lang$core$Random$int, min, max);
+var _user$project$Main$randomSequence = F4(
+	function (numberOfValues, min, max, seed) {
+		var randomSeed = _elm_lang$core$Random$initialSeed(seed);
+		var generator = A2(
+			_elm_lang$core$Random$list,
+			numberOfValues,
+			A2(_elm_lang$core$Random$int, min, max));
+		var _p0 = A2(_elm_lang$core$Random$step, generator, randomSeed);
+		var result = _p0._0;
+		var nextSeed = _p0._1;
+		return result;
 	});
-var _user$project$Main$Model = F4(
-	function (a, b, c, d) {
-		return {gameState: a, gridContents: b, level: c, score: d};
+var _user$project$Main$Model = F5(
+	function (a, b, c, d, e) {
+		return {gameState: a, gridContents: b, level: c, score: d, startedTime: e};
 	});
 var _user$project$Main$Results = {ctor: 'Results'};
 var _user$project$Main$Playing = {ctor: 'Playing'};
 var _user$project$Main$Welcome = {ctor: 'Welcome'};
-var _user$project$Main$initialModel = {gameState: _user$project$Main$Welcome, gridContents: _elm_lang$core$Dict$empty, level: _elm_lang$core$Maybe$Nothing, score: 0};
+var _user$project$Main$initialModel = {gameState: _user$project$Main$Welcome, gridContents: _elm_lang$core$Dict$empty, level: _elm_lang$core$Maybe$Nothing, score: 0, startedTime: _elm_lang$core$Maybe$Nothing};
 var _user$project$Main$Level3 = {ctor: 'Level3'};
 var _user$project$Main$Level2 = {ctor: 'Level2'};
 var _user$project$Main$Level1 = {ctor: 'Level1'};
@@ -22,48 +30,117 @@ var _user$project$Main$scoreToLevel = function (score) {
 var _user$project$Main$Client = {ctor: 'Client'};
 var _user$project$Main$Fraudster = {ctor: 'Fraudster'};
 var _user$project$Main$Empty = {ctor: 'Empty'};
+var _user$project$Main$StartedTime = function (a) {
+	return {ctor: 'StartedTime', _0: a};
+};
+var _user$project$Main$getTime = A2(_elm_lang$core$Task$perform, _user$project$Main$StartedTime, _elm_lang$core$Time$now);
+var _user$project$Main$init = {ctor: '_Tuple2', _0: _user$project$Main$initialModel, _1: _user$project$Main$getTime};
 var _user$project$Main$StartGame = {ctor: 'StartGame'};
 var _user$project$Main$NoOp = {ctor: 'NoOp'};
 var _user$project$Main$InitialiseLevel = {ctor: 'InitialiseLevel'};
-var _user$project$Main$CreateFraudsters = {ctor: 'CreateFraudsters'};
-var _user$project$Main$CreateClients = {ctor: 'CreateClients'};
 var _user$project$Main$update = F2(
 	function (msg, model) {
-		update:
-		while (true) {
-			var _p0 = msg;
-			switch (_p0.ctor) {
-				case 'ClickBox':
-					return {ctor: '_Tuple2', _0: model, _1: _elm_lang$core$Platform_Cmd$none};
-				case 'CreateClients':
-					return {ctor: '_Tuple2', _0: model, _1: _elm_lang$core$Platform_Cmd$none};
-				case 'CreateFraudsters':
-					return {ctor: '_Tuple2', _0: model, _1: _elm_lang$core$Platform_Cmd$none};
-				case 'InitialiseLevel':
-					var _p1 = A2(_user$project$Main$update, _user$project$Main$CreateFraudsters, model);
-					var updatedModelWithFraudsters = _p1._0;
-					var updatedCmdWithFraudsters = _p1._1;
-					var _p2 = A2(_user$project$Main$update, _user$project$Main$CreateClients, model);
-					var updatedModelWithClients = _p2._0;
-					var updatedCmdWithClients = _p2._1;
-					return {ctor: '_Tuple2', _0: updatedModelWithFraudsters, _1: updatedCmdWithFraudsters};
-				case 'NoOp':
-					return {ctor: '_Tuple2', _0: model, _1: _elm_lang$core$Platform_Cmd$none};
-				default:
-					var _v1 = _user$project$Main$InitialiseLevel,
-						_v2 = _elm_lang$core$Native_Utils.update(
+		var _p1 = msg;
+		switch (_p1.ctor) {
+			case 'ClickBox':
+				return {ctor: '_Tuple2', _0: model, _1: _elm_lang$core$Platform_Cmd$none};
+			case 'CreateClients':
+				return {ctor: '_Tuple2', _0: model, _1: _elm_lang$core$Platform_Cmd$none};
+			case 'CreateFraudsters':
+				return {ctor: '_Tuple2', _0: model, _1: _elm_lang$core$Platform_Cmd$none};
+			case 'InitialiseLevel':
+				return {ctor: '_Tuple2', _0: model, _1: _elm_lang$core$Platform_Cmd$none};
+			case 'NoOp':
+				return {ctor: '_Tuple2', _0: model, _1: _elm_lang$core$Platform_Cmd$none};
+			case 'StartGame':
+				var _p2 = A2(
+					_user$project$Main$update,
+					_user$project$Main$InitialiseLevel,
+					_elm_lang$core$Native_Utils.update(
 						model,
 						{
 							gameState: _user$project$Main$Playing,
 							level: _elm_lang$core$Maybe$Just(_user$project$Main$Level1)
-						});
-					msg = _v1;
-					model = _v2;
-					continue update;
-			}
+						}));
+				var updatedModel = _p2._0;
+				var updatedCmd = _p2._1;
+				var _p3 = function () {
+					var _p4 = updatedModel.level;
+					if (_p4.ctor === 'Just') {
+						switch (_p4._0.ctor) {
+							case 'Level1':
+								return {ctor: '_Tuple3', _0: 2, _1: 1, _2: 3};
+							case 'Level2':
+								return {ctor: '_Tuple3', _0: 4, _1: 2, _2: 5};
+							default:
+								return {ctor: '_Tuple3', _0: 6, _1: 3, _2: 7};
+						}
+					} else {
+						return {ctor: '_Tuple3', _0: 0, _1: 0, _2: 0};
+					}
+				}();
+				var numberOfClients = _p3._0;
+				var numberOfFraudsters = _p3._1;
+				var rows = _p3._2;
+				var clientRandomList = function () {
+					var _p5 = updatedModel.startedTime;
+					if (_p5.ctor === 'Just') {
+						return A4(
+							_user$project$Main$randomSequence,
+							numberOfClients,
+							1,
+							rows * rows,
+							_elm_lang$core$Basics$floor(_p5._0));
+					} else {
+						return {ctor: '[]'};
+					}
+				}();
+				var fraudsterRandomList = function () {
+					var _p6 = updatedModel.startedTime;
+					if (_p6.ctor === 'Just') {
+						return A4(
+							_user$project$Main$randomSequence,
+							numberOfFraudsters,
+							1,
+							rows * rows,
+							_elm_lang$core$Basics$floor(_p6._0 / 2));
+					} else {
+						return {ctor: '[]'};
+					}
+				}();
+				var gridContents = A2(
+					_elm_lang$core$Debug$log,
+					'test2',
+					A2(
+						_elm_lang$core$List$map,
+						function (index) {
+							var cellType = A2(_elm_lang$core$List$member, index, clientRandomList) ? _user$project$Main$Client : (A2(_elm_lang$core$List$member, index, fraudsterRandomList) ? _user$project$Main$Fraudster : _user$project$Main$Empty);
+							return {ctor: '_Tuple2', _0: index, _1: cellType};
+						},
+						A2(
+							_elm_lang$core$List$filter,
+							function (index) {
+								var floatRows = _elm_lang$core$Basics$toFloat(rows);
+								return !_elm_lang$core$Native_Utils.eq(
+									_elm_lang$core$Basics$toFloat(index),
+									((floatRows * floatRows) + 1) / 2);
+							},
+							A2(_elm_lang$core$List$range, 1, rows * rows))));
+				return {ctor: '_Tuple2', _0: updatedModel, _1: updatedCmd};
+			default:
+				return {
+					ctor: '_Tuple2',
+					_0: _elm_lang$core$Native_Utils.update(
+						model,
+						{
+							startedTime: _elm_lang$core$Maybe$Just(_p1._0)
+						}),
+					_1: _elm_lang$core$Platform_Cmd$none
+				};
 		}
 	});
-var _user$project$Main$init = A2(_user$project$Main$update, _user$project$Main$NoOp, _user$project$Main$initialModel);
+var _user$project$Main$CreateFraudsters = {ctor: 'CreateFraudsters'};
+var _user$project$Main$CreateClients = {ctor: 'CreateClients'};
 var _user$project$Main$ClickBox = function (a) {
 	return {ctor: 'ClickBox', _0: a};
 };
@@ -113,10 +190,10 @@ var _user$project$Main$makeGrid = function (rows) {
 		A2(_elm_lang$core$List$range, 1, rows * rows));
 };
 var _user$project$Main$view = function (model) {
-	var _p3 = function () {
-		var _p4 = model.level;
-		if (_p4.ctor === 'Just') {
-			switch (_p4._0.ctor) {
+	var _p7 = function () {
+		var _p8 = model.level;
+		if (_p8.ctor === 'Just') {
+			switch (_p8._0.ctor) {
 				case 'Level1':
 					return {
 						ctor: '_Tuple2',
@@ -156,10 +233,10 @@ var _user$project$Main$view = function (model) {
 			};
 		}
 	}();
-	var levelClass = _p3._0;
-	var grid = _p3._1;
-	var _p5 = model.gameState;
-	switch (_p5.ctor) {
+	var levelClass = _p7._0;
+	var grid = _p7._1;
+	var _p9 = model.gameState;
+	switch (_p9.ctor) {
 		case 'Welcome':
 			return A2(
 				_elm_lang$html$Html$div,
