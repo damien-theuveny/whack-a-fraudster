@@ -88,6 +88,10 @@ update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
     case msg of
         ClickBox index ->
+            let
+                _ =
+                    Debug.log "clicked" (Dict.get index model.gridContents)
+            in
             ( model, Cmd.none )
 
         CreateClients ->
@@ -157,7 +161,7 @@ update msg model =
                                 in
                                 ( index, cellType )
                             )
-                        |> Debug.log "test2"
+                        |> Dict.fromList
 
                 ( updatedModel, updatedCmd ) =
                     update
@@ -167,7 +171,7 @@ update msg model =
                             , level = Just Level1
                         }
             in
-            ( updatedModel, updatedCmd )
+            ( { updatedModel | gridContents = gridContents }, updatedCmd )
 
         StartedTime time ->
             ( { model | startedTime = Just time }, Cmd.none )
@@ -183,13 +187,13 @@ view model =
         ( levelClass, grid ) =
             case model.level of
                 Just Level1 ->
-                    ( [ class "grid-container--level1" ], makeGrid 3 )
+                    ( [ class "grid-container--level1" ], makeGrid 3 model.gridContents )
 
                 Just Level2 ->
-                    ( [ class "grid-container--level2" ], makeGrid 5 )
+                    ( [ class "grid-container--level2" ], makeGrid 5 model.gridContents )
 
                 Just Level3 ->
-                    ( [ class "grid-container--level3" ], makeGrid 7 )
+                    ( [ class "grid-container--level3" ], makeGrid 7 model.gridContents )
 
                 Nothing ->
                     ( [], [] )
@@ -238,8 +242,8 @@ scoreToLevel score =
         Level3
 
 
-makeGrid : Int -> List (Html Msg)
-makeGrid rows =
+makeGrid : Int -> Dict Int ContentType -> List (Html Msg)
+makeGrid rows gridContents =
     List.range 1 (rows * rows)
         |> List.map
             (\index ->
@@ -252,11 +256,23 @@ makeGrid rows =
                             [ class "grid-logo" ]
                         else
                             []
+
+                    contentClass =
+                        case Dict.get index gridContents of
+                            Just Client ->
+                                [ class "client" ]
+
+                            Just Fraudster ->
+                                [ class "fraudster" ]
+
+                            _ ->
+                                []
                 in
                 div
                     ([ class "grid-item" ]
                         ++ [ class ("grid-item-" ++ toString index) ]
                         ++ logoItem
+                        ++ contentClass
                         ++ [ onClick (ClickBox index) ]
                     )
                     []

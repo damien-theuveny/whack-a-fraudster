@@ -43,6 +43,10 @@ var _user$project$Main$update = F2(
 		var _p1 = msg;
 		switch (_p1.ctor) {
 			case 'ClickBox':
+				var _p2 = A2(
+					_elm_lang$core$Debug$log,
+					'clicked',
+					A2(_elm_lang$core$Dict$get, _p1._0, model.gridContents));
 				return {ctor: '_Tuple2', _0: model, _1: _elm_lang$core$Platform_Cmd$none};
 			case 'CreateClients':
 				return {ctor: '_Tuple2', _0: model, _1: _elm_lang$core$Platform_Cmd$none};
@@ -53,7 +57,7 @@ var _user$project$Main$update = F2(
 			case 'NoOp':
 				return {ctor: '_Tuple2', _0: model, _1: _elm_lang$core$Platform_Cmd$none};
 			case 'StartGame':
-				var _p2 = A2(
+				var _p3 = A2(
 					_user$project$Main$update,
 					_user$project$Main$InitialiseLevel,
 					_elm_lang$core$Native_Utils.update(
@@ -62,12 +66,12 @@ var _user$project$Main$update = F2(
 							gameState: _user$project$Main$Playing,
 							level: _elm_lang$core$Maybe$Just(_user$project$Main$Level1)
 						}));
-				var updatedModel = _p2._0;
-				var updatedCmd = _p2._1;
-				var _p3 = function () {
-					var _p4 = updatedModel.level;
-					if (_p4.ctor === 'Just') {
-						switch (_p4._0.ctor) {
+				var updatedModel = _p3._0;
+				var updatedCmd = _p3._1;
+				var _p4 = function () {
+					var _p5 = updatedModel.level;
+					if (_p5.ctor === 'Just') {
+						switch (_p5._0.ctor) {
 							case 'Level1':
 								return {ctor: '_Tuple3', _0: 2, _1: 1, _2: 3};
 							case 'Level2':
@@ -79,38 +83,36 @@ var _user$project$Main$update = F2(
 						return {ctor: '_Tuple3', _0: 0, _1: 0, _2: 0};
 					}
 				}();
-				var numberOfClients = _p3._0;
-				var numberOfFraudsters = _p3._1;
-				var rows = _p3._2;
+				var numberOfClients = _p4._0;
+				var numberOfFraudsters = _p4._1;
+				var rows = _p4._2;
 				var clientRandomList = function () {
-					var _p5 = updatedModel.startedTime;
-					if (_p5.ctor === 'Just') {
+					var _p6 = updatedModel.startedTime;
+					if (_p6.ctor === 'Just') {
 						return A4(
 							_user$project$Main$randomSequence,
 							numberOfClients,
 							1,
 							rows * rows,
-							_elm_lang$core$Basics$floor(_p5._0));
+							_elm_lang$core$Basics$floor(_p6._0));
 					} else {
 						return {ctor: '[]'};
 					}
 				}();
 				var fraudsterRandomList = function () {
-					var _p6 = updatedModel.startedTime;
-					if (_p6.ctor === 'Just') {
+					var _p7 = updatedModel.startedTime;
+					if (_p7.ctor === 'Just') {
 						return A4(
 							_user$project$Main$randomSequence,
 							numberOfFraudsters,
 							1,
 							rows * rows,
-							_elm_lang$core$Basics$floor(_p6._0 / 2));
+							_elm_lang$core$Basics$floor(_p7._0 / 2));
 					} else {
 						return {ctor: '[]'};
 					}
 				}();
-				var gridContents = A2(
-					_elm_lang$core$Debug$log,
-					'test2',
+				var gridContents = _elm_lang$core$Dict$fromList(
 					A2(
 						_elm_lang$core$List$map,
 						function (index) {
@@ -126,7 +128,13 @@ var _user$project$Main$update = F2(
 									((floatRows * floatRows) + 1) / 2);
 							},
 							A2(_elm_lang$core$List$range, 1, rows * rows))));
-				return {ctor: '_Tuple2', _0: updatedModel, _1: updatedCmd};
+				return {
+					ctor: '_Tuple2',
+					_0: _elm_lang$core$Native_Utils.update(
+						updatedModel,
+						{gridContents: gridContents}),
+					_1: updatedCmd
+				};
 			default:
 				return {
 					ctor: '_Tuple2',
@@ -144,56 +152,87 @@ var _user$project$Main$CreateClients = {ctor: 'CreateClients'};
 var _user$project$Main$ClickBox = function (a) {
 	return {ctor: 'ClickBox', _0: a};
 };
-var _user$project$Main$makeGrid = function (rows) {
-	return A2(
-		_elm_lang$core$List$map,
-		function (index) {
-			var floatRows = _elm_lang$core$Basics$toFloat(rows);
-			var logoItem = _elm_lang$core$Native_Utils.eq(
-				_elm_lang$core$Basics$toFloat(index),
-				((floatRows * floatRows) + 1) / 2) ? {
-				ctor: '::',
-				_0: _elm_lang$html$Html_Attributes$class('grid-logo'),
-				_1: {ctor: '[]'}
-			} : {ctor: '[]'};
-			return A2(
-				_elm_lang$html$Html$div,
-				A2(
-					_elm_lang$core$Basics_ops['++'],
-					{
-						ctor: '::',
-						_0: _elm_lang$html$Html_Attributes$class('grid-item'),
-						_1: {ctor: '[]'}
-					},
+var _user$project$Main$makeGrid = F2(
+	function (rows, gridContents) {
+		return A2(
+			_elm_lang$core$List$map,
+			function (index) {
+				var contentClass = function () {
+					var _p8 = A2(_elm_lang$core$Dict$get, index, gridContents);
+					_v4_2:
+					do {
+						if (_p8.ctor === 'Just') {
+							switch (_p8._0.ctor) {
+								case 'Client':
+									return {
+										ctor: '::',
+										_0: _elm_lang$html$Html_Attributes$class('client'),
+										_1: {ctor: '[]'}
+									};
+								case 'Fraudster':
+									return {
+										ctor: '::',
+										_0: _elm_lang$html$Html_Attributes$class('fraudster'),
+										_1: {ctor: '[]'}
+									};
+								default:
+									break _v4_2;
+							}
+						} else {
+							break _v4_2;
+						}
+					} while(false);
+					return {ctor: '[]'};
+				}();
+				var floatRows = _elm_lang$core$Basics$toFloat(rows);
+				var logoItem = _elm_lang$core$Native_Utils.eq(
+					_elm_lang$core$Basics$toFloat(index),
+					((floatRows * floatRows) + 1) / 2) ? {
+					ctor: '::',
+					_0: _elm_lang$html$Html_Attributes$class('grid-logo'),
+					_1: {ctor: '[]'}
+				} : {ctor: '[]'};
+				return A2(
+					_elm_lang$html$Html$div,
 					A2(
 						_elm_lang$core$Basics_ops['++'],
 						{
 							ctor: '::',
-							_0: _elm_lang$html$Html_Attributes$class(
-								A2(
-									_elm_lang$core$Basics_ops['++'],
-									'grid-item-',
-									_elm_lang$core$Basics$toString(index))),
+							_0: _elm_lang$html$Html_Attributes$class('grid-item'),
 							_1: {ctor: '[]'}
 						},
 						A2(
 							_elm_lang$core$Basics_ops['++'],
-							logoItem,
 							{
 								ctor: '::',
-								_0: _elm_lang$html$Html_Events$onClick(
-									_user$project$Main$ClickBox(index)),
+								_0: _elm_lang$html$Html_Attributes$class(
+									A2(
+										_elm_lang$core$Basics_ops['++'],
+										'grid-item-',
+										_elm_lang$core$Basics$toString(index))),
 								_1: {ctor: '[]'}
-							}))),
-				{ctor: '[]'});
-		},
-		A2(_elm_lang$core$List$range, 1, rows * rows));
-};
+							},
+							A2(
+								_elm_lang$core$Basics_ops['++'],
+								logoItem,
+								A2(
+									_elm_lang$core$Basics_ops['++'],
+									contentClass,
+									{
+										ctor: '::',
+										_0: _elm_lang$html$Html_Events$onClick(
+											_user$project$Main$ClickBox(index)),
+										_1: {ctor: '[]'}
+									})))),
+					{ctor: '[]'});
+			},
+			A2(_elm_lang$core$List$range, 1, rows * rows));
+	});
 var _user$project$Main$view = function (model) {
-	var _p7 = function () {
-		var _p8 = model.level;
-		if (_p8.ctor === 'Just') {
-			switch (_p8._0.ctor) {
+	var _p9 = function () {
+		var _p10 = model.level;
+		if (_p10.ctor === 'Just') {
+			switch (_p10._0.ctor) {
 				case 'Level1':
 					return {
 						ctor: '_Tuple2',
@@ -202,7 +241,7 @@ var _user$project$Main$view = function (model) {
 							_0: _elm_lang$html$Html_Attributes$class('grid-container--level1'),
 							_1: {ctor: '[]'}
 						},
-						_1: _user$project$Main$makeGrid(3)
+						_1: A2(_user$project$Main$makeGrid, 3, model.gridContents)
 					};
 				case 'Level2':
 					return {
@@ -212,7 +251,7 @@ var _user$project$Main$view = function (model) {
 							_0: _elm_lang$html$Html_Attributes$class('grid-container--level2'),
 							_1: {ctor: '[]'}
 						},
-						_1: _user$project$Main$makeGrid(5)
+						_1: A2(_user$project$Main$makeGrid, 5, model.gridContents)
 					};
 				default:
 					return {
@@ -222,7 +261,7 @@ var _user$project$Main$view = function (model) {
 							_0: _elm_lang$html$Html_Attributes$class('grid-container--level3'),
 							_1: {ctor: '[]'}
 						},
-						_1: _user$project$Main$makeGrid(7)
+						_1: A2(_user$project$Main$makeGrid, 7, model.gridContents)
 					};
 			}
 		} else {
@@ -233,10 +272,10 @@ var _user$project$Main$view = function (model) {
 			};
 		}
 	}();
-	var levelClass = _p7._0;
-	var grid = _p7._1;
-	var _p9 = model.gameState;
-	switch (_p9.ctor) {
+	var levelClass = _p9._0;
+	var grid = _p9._1;
+	var _p11 = model.gameState;
+	switch (_p11.ctor) {
 		case 'Welcome':
 			return A2(
 				_elm_lang$html$Html$div,

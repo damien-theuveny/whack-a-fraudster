@@ -36,3 +36,11 @@ body {
 .grid-logo {
   background: #fff;
 }
+
+.client {
+  background-color: rgba(0, 255, 0, 0.5);
+}
+
+.fraudster {
+  background-color: rgba(255, 0, 0, 0.5);
+}
