@@ -28,6 +28,7 @@ type alias Model =
     { gameState : GameState
     , gridContents : Dict Int ContentType
     , level : Maybe Level
+    , randomSequence : List Int
     , score : Int
     , startedTime : Maybe Time
     }
@@ -38,6 +39,7 @@ initialModel =
     { gameState = Welcome
     , gridContents = Dict.empty
     , level = Nothing
+    , randomSequence = []
     , score = 0
     , startedTime = Nothing
     }
@@ -121,6 +123,18 @@ update msg model =
 
                         Nothing ->
                             ( 0, 0, 0 )
+
+                emptySpaces =
+                    if Dict.isEmpty model.gridContents then
+                        rows * rows - 1
+                    else
+                        Dict.values model.gridContents
+                            |> List.filter (\index -> index == Empty)
+                            |> List.length
+
+                generators =
+                    createRandomNumberGeneratorList emptySpaces (numberOfClients + numberOfFraudsters)
+                        |> Debug.log "generators"
 
                 clientRandomList =
                     case updatedModel.startedTime of
@@ -215,6 +229,23 @@ view model =
 
 getTime =
     Task.perform StartedTime Time.now
+
+
+createRandomNumberGeneratorList : Int -> Int -> List (Random.Generator Int)
+createRandomNumberGeneratorList emptyCells countOfGenerators =
+    List.range 1 emptyCells
+        |> Debug.log "list"
+        |> List.filterMap
+            (\index ->
+                if index <= countOfGenerators then
+                    let
+                        _ =
+                            Debug.log "test" (emptyCells - (index - 1))
+                    in
+                    Just (Random.int 1 (emptyCells - (index - 1)))
+                else
+                    Nothing
+            )
 
 
 randomSequence : Int -> Int -> Int -> Int -> List Int
