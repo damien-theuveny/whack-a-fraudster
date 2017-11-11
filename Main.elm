@@ -93,8 +93,19 @@ update msg model =
             let
                 _ =
                     Debug.log "clicked" (Dict.get index model.gridContents)
+
+                ( updatedModel, updatedCmd ) =
+                    case Dict.get index model.gridContents of
+                        Just Fraudster ->
+                            update CreateFraudsters { model | score = model.score + 50 }
+
+                        Just Client ->
+                            update CreateClients { model | score = model.score - 100 }
+
+                        _ ->
+                            update NoOp model
             in
-            ( model, Cmd.none )
+            ( updatedModel, updatedCmd )
 
         CreateClients ->
             ( model, Cmd.none )
@@ -134,23 +145,63 @@ update msg model =
 
                 generators =
                     createRandomNumberGeneratorList emptySpaces (numberOfClients + numberOfFraudsters)
-                        |> Debug.log "generators"
+
+                randomNumbers =
+                    -- correctNumbers ((toFloat rows * toFloat rows + 1) / 2) [ 1, 1, 1 ]
+                    case updatedModel.startedTime of
+                        Just time ->
+                            randomSequence generators (floor time)
+                                |> correctNumbers ((toFloat rows * toFloat rows + 1) / 2)
+
+                        _ ->
+                            []
+
+                nextAvailibleNumber currentNumber centre list =
+                    let
+                        filtered =
+                            List.range 1 (rows * rows)
+                                |> List.filter
+                                    (\item ->
+                                        (toFloat item /= centre) && not (List.member item list)
+                                    )
+                    in
+                    List.drop (currentNumber - 1) filtered
+                        |> List.head
+
+                correctNumbers centre list =
+                    list
+                        |> List.map
+                            (\item ->
+                                if toFloat item >= centre then
+                                    item + 1
+                                else
+                                    item
+                            )
+                        |> List.indexedMap
+                            (\index randomNumber ->
+                                let
+                                    listSoFar =
+                                        List.take index list
+                                            |> correctNumbers centre
+
+                                    correctedRandomNumber =
+                                        case nextAvailibleNumber randomNumber centre listSoFar of
+                                            Just number ->
+                                                number
+
+                                            _ ->
+                                                randomNumber
+                                in
+                                correctedRandomNumber
+                            )
 
                 clientRandomList =
-                    case updatedModel.startedTime of
-                        Just time ->
-                            randomSequence numberOfClients 1 (rows * rows) (floor time)
-
-                        Nothing ->
-                            []
+                    randomNumbers
+                        |> List.take numberOfClients
 
                 fraudsterRandomList =
-                    case updatedModel.startedTime of
-                        Just time ->
-                            randomSequence numberOfFraudsters 1 (rows * rows) (floor (time / 2))
-
-                        Nothing ->
-                            []
+                    randomNumbers
+                        |> List.drop numberOfClients
 
                 gridContents =
                     List.range 1 (rows * rows)
@@ -234,33 +285,29 @@ getTime =
 createRandomNumberGeneratorList : Int -> Int -> List (Random.Generator Int)
 createRandomNumberGeneratorList emptyCells countOfGenerators =
     List.range 1 emptyCells
-        |> Debug.log "list"
         |> List.filterMap
             (\index ->
                 if index <= countOfGenerators then
-                    let
-                        _ =
-                            Debug.log "test" (emptyCells - (index - 1))
-                    in
                     Just (Random.int 1 (emptyCells - (index - 1)))
                 else
                     Nothing
             )
 
 
-randomSequence : Int -> Int -> Int -> Int -> List Int
-randomSequence numberOfValues min max seed =
-    let
-        generator =
-            Random.list numberOfValues (Random.int min max)
+randomSequence : List (Random.Generator Int) -> Int -> List Int
+randomSequence generators seed =
+    generators
+        |> List.indexedMap
+            (\index generator ->
+                let
+                    randomSeed =
+                        Random.initialSeed seed
 
-        randomSeed =
-            Random.initialSeed seed
-
-        ( result, nextSeed ) =
-            Random.step generator randomSeed
-    in
-    result
+                    ( generatorOutput, _ ) =
+                        Random.step generator (Random.initialSeed ((index + 1) * seed))
+                in
+                generatorOutput
+            )
 
 
 scoreToLevel : Int -> Level
