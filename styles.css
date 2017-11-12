@@ -25,6 +25,18 @@ body {
   left: calc(50% - 125px);
 }
 
+.grid-container.grid-container--level3 {
+  width: 350px;
+  top: calc(50% - 175px);
+  left: calc(50% - 175px);
+}
+
+.grid-container.grid-container--level4 {
+  width: 450px;
+  top: calc(50% - 225px);
+  left: calc(50% - 225px);
+}
+
 .grid-item {
   height: 50px;
   width: 50px;

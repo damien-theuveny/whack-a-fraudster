@@ -31,6 +31,7 @@ type alias Model =
     , randomSequence : List Int
     , score : Int
     , startedTime : Maybe Time
+    , lastTick : Maybe Time
     }
 
 
@@ -42,6 +43,7 @@ initialModel =
     , randomSequence = []
     , score = 0
     , startedTime = Nothing
+    , lastTick = Nothing
     }
 
 
@@ -64,6 +66,7 @@ type Level
     = Level1
     | Level2
     | Level3
+    | Level4
 
 
 type ContentType
@@ -76,6 +79,7 @@ type Msg
     = ClickBox Int
     | CreateClients
     | CreateFraudsters
+    | GameEnded
     | InitialiseLevel
     | NoOp
     | StartGame
@@ -125,6 +129,9 @@ update msg model =
         CreateFraudsters ->
             ( model, Cmd.none )
 
+        GameEnded ->
+            ( { model | gameState = Results }, Cmd.none )
+
         InitialiseLevel ->
             let
                 ( numberOfClients, numberOfFraudsters, rows ) =
@@ -138,24 +145,26 @@ update msg model =
                         Just Level3 ->
                             ( 6, 3, 7 )
 
+                        Just Level4 ->
+                            ( 8, 5, 9 )
+
                         Nothing ->
                             ( 0, 0, 0 )
 
                 emptySpaces =
-                    if Dict.isEmpty model.gridContents then
-                        rows * rows - 1
-                    else
-                        Dict.values model.gridContents
-                            |> List.filter (\index -> index == Empty)
-                            |> List.length
+                    (rows * rows) - 1
 
                 generators =
                     createRandomNumberGeneratorList emptySpaces (numberOfClients + numberOfFraudsters)
 
                 randomNumbers =
                     -- correctNumbers ((toFloat rows * toFloat rows + 1) / 2) [ 1, 1, 1 ]
-                    case model.startedTime of
-                        Just time ->
+                    case ( model.lastTick, model.startedTime ) of
+                        ( Just time, _ ) ->
+                            randomSequence generators (floor time)
+                                |> correctNumbers ((toFloat rows * toFloat rows + 1) / 2)
+
+                        ( _, Just time ) ->
                             randomSequence generators (floor time)
                                 |> correctNumbers ((toFloat rows * toFloat rows + 1) / 2)
 
@@ -252,7 +261,31 @@ update msg model =
             ( { model | startedTime = Just time }, Cmd.none )
 
         Tick time ->
-            update InitialiseLevel { model | startedTime = Just time, level = Just (scoreToLevel model.score) }
+            let
+                level =
+                    Just (scoreToLevel model.score)
+
+                gameEnded =
+                    case ( level, model.startedTime ) of
+                        ( Just Level1, Just startedTime ) ->
+                            Time.inSeconds (time - startedTime) > 20
+
+                        ( Just Level2, Just startedTime ) ->
+                            Time.inSeconds (time - startedTime) > 40
+
+                        ( Just Level3, Just startedTime ) ->
+                            Time.inSeconds (time - startedTime) > 60
+
+                        ( Just Level4, Just startedTime ) ->
+                            Time.inSeconds (time - startedTime) > 80
+
+                        _ ->
+                            False
+            in
+            if gameEnded then
+                update GameEnded model
+            else
+                update InitialiseLevel { model | lastTick = Just time, level = level }
 
 
 insertContentType : Int -> ContentType -> Dict Int ContentType -> Dict Int ContentType
@@ -278,6 +311,9 @@ view model =
                 Just Level3 ->
                     ( [ class "grid-container--level3" ], makeGrid 7 model.gridContents )
 
+                Just Level4 ->
+                    ( [ class "grid-container--level4" ], makeGrid 9 model.gridContents )
+
                 Nothing ->
                     ( [], [] )
     in
@@ -295,7 +331,11 @@ view model =
                 ]
 
         Results ->
-            div [] [ text (toString model.score) ]
+            div []
+                [ div [ class "score" ] [ text (toString model.score) ]
+
+                -- , div [] [ text Time.inSeconds (model.lastTick - model.startedTime)]
+                ]
 
 
 getTime =
@@ -336,8 +376,10 @@ scoreToLevel score =
         Level1
     else if score >= 350 && score < 1000 then
         Level2
-    else
+    else if score >= 1000 && score < 2000 then
         Level3
+    else
+        Level4
 
 
 makeGrid : Int -> Dict Int ContentType -> List (Html Msg)
@@ -383,13 +425,16 @@ subscriptions model =
         interval =
             case model.level of
                 Just Level1 ->
-                    2 * Time.second
+                    Time.second * 2
 
                 Just Level2 ->
-                    Time.second
+                    Time.second * 1.25
+
+                Just Level3 ->
+                    Time.second * 1
 
                 _ ->
-                    Time.second / 2
+                    Time.second * 0.75
     in
     case model.gameState of
         Playing ->
