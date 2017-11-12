@@ -9055,9 +9055,6 @@ var _elm_lang$html$Html_Keyed$node = _elm_lang$virtual_dom$VirtualDom$keyedNode;
 var _elm_lang$html$Html_Keyed$ol = _elm_lang$html$Html_Keyed$node('ol');
 var _elm_lang$html$Html_Keyed$ul = _elm_lang$html$Html_Keyed$node('ul');
 
-var _user$project$Main$subscriptions = function (model) {
-	return _elm_lang$core$Platform_Sub$none;
-};
 var _user$project$Main$randomSequence = F2(
 	function (generators, seed) {
 		return A2(
@@ -9084,6 +9081,10 @@ var _user$project$Main$createRandomNumberGeneratorList = F2(
 			},
 			A2(_elm_lang$core$List$range, 1, emptyCells));
 	});
+var _user$project$Main$insertContentType = F3(
+	function (index, contentType, gridContents) {
+		return A3(_elm_lang$core$Dict$insert, index, contentType, gridContents);
+	});
 var _user$project$Main$Model = F6(
 	function (a, b, c, d, e, f) {
 		return {gameState: a, gridContents: b, level: c, randomSequence: d, score: e, startedTime: f};
@@ -9108,6 +9109,36 @@ var _user$project$Main$scoreToLevel = function (score) {
 var _user$project$Main$Client = {ctor: 'Client'};
 var _user$project$Main$Fraudster = {ctor: 'Fraudster'};
 var _user$project$Main$Empty = {ctor: 'Empty'};
+var _user$project$Main$Tick = function (a) {
+	return {ctor: 'Tick', _0: a};
+};
+var _user$project$Main$subscriptions = function (model) {
+	var interval = function () {
+		var _p1 = model.level;
+		_v0_2:
+		do {
+			if (_p1.ctor === 'Just') {
+				switch (_p1._0.ctor) {
+					case 'Level1':
+						return 2 * _elm_lang$core$Time$second;
+					case 'Level2':
+						return _elm_lang$core$Time$second;
+					default:
+						break _v0_2;
+				}
+			} else {
+				break _v0_2;
+			}
+		} while(false);
+		return _elm_lang$core$Time$second / 2;
+	}();
+	var _p2 = model.gameState;
+	if (_p2.ctor === 'Playing') {
+		return A2(_elm_lang$core$Time$every, interval, _user$project$Main$Tick);
+	} else {
+		return _elm_lang$core$Platform_Sub$none;
+	}
+};
 var _user$project$Main$StartedTime = function (a) {
 	return {ctor: 'StartedTime', _0: a};
 };
@@ -9116,202 +9147,216 @@ var _user$project$Main$init = {ctor: '_Tuple2', _0: _user$project$Main$initialMo
 var _user$project$Main$StartGame = {ctor: 'StartGame'};
 var _user$project$Main$NoOp = {ctor: 'NoOp'};
 var _user$project$Main$InitialiseLevel = {ctor: 'InitialiseLevel'};
-var _user$project$Main$CreateFraudsters = {ctor: 'CreateFraudsters'};
-var _user$project$Main$CreateClients = {ctor: 'CreateClients'};
 var _user$project$Main$update = F2(
 	function (msg, model) {
-		var _p1 = msg;
-		switch (_p1.ctor) {
-			case 'ClickBox':
-				var _p5 = _p1._0;
-				var _p2 = function () {
-					var _p3 = A2(_elm_lang$core$Dict$get, _p5, model.gridContents);
-					_v1_2:
+		update:
+		while (true) {
+			var _p3 = msg;
+			switch (_p3.ctor) {
+				case 'ClickBox':
+					var _p5 = _p3._0;
+					var _p4 = A2(_elm_lang$core$Dict$get, _p5, model.gridContents);
+					_v3_2:
 					do {
-						if (_p3.ctor === 'Just') {
-							switch (_p3._0.ctor) {
+						if (_p4.ctor === 'Just') {
+							switch (_p4._0.ctor) {
 								case 'Fraudster':
-									return A2(
-										_user$project$Main$update,
-										_user$project$Main$CreateFraudsters,
-										_elm_lang$core$Native_Utils.update(
+									return {
+										ctor: '_Tuple2',
+										_0: _elm_lang$core$Native_Utils.update(
 											model,
-											{score: model.score + 50}));
+											{
+												score: model.score + 50,
+												gridContents: A3(
+													_elm_lang$core$Dict$update,
+													_p5,
+													_elm_lang$core$Maybe$map(
+														function (previousContentTypes) {
+															return _user$project$Main$Empty;
+														}),
+													model.gridContents)
+											}),
+										_1: _elm_lang$core$Platform_Cmd$none
+									};
 								case 'Client':
-									return A2(
-										_user$project$Main$update,
-										_user$project$Main$CreateClients,
-										_elm_lang$core$Native_Utils.update(
+									return {
+										ctor: '_Tuple2',
+										_0: _elm_lang$core$Native_Utils.update(
 											model,
-											{score: model.score - 100}));
+											{
+												score: model.score - 100,
+												gridContents: A3(
+													_elm_lang$core$Dict$update,
+													_p5,
+													_elm_lang$core$Maybe$map(
+														function (previousContentTypes) {
+															return _user$project$Main$Empty;
+														}),
+													model.gridContents)
+											}),
+										_1: _elm_lang$core$Platform_Cmd$none
+									};
 								default:
-									break _v1_2;
+									break _v3_2;
 							}
 						} else {
-							break _v1_2;
+							break _v3_2;
 						}
 					} while(false);
-					return A2(_user$project$Main$update, _user$project$Main$NoOp, model);
-				}();
-				var updatedModel = _p2._0;
-				var updatedCmd = _p2._1;
-				var _p4 = A2(
-					_elm_lang$core$Debug$log,
-					'clicked',
-					A2(_elm_lang$core$Dict$get, _p5, model.gridContents));
-				return {ctor: '_Tuple2', _0: updatedModel, _1: updatedCmd};
-			case 'CreateClients':
-				return {ctor: '_Tuple2', _0: model, _1: _elm_lang$core$Platform_Cmd$none};
-			case 'CreateFraudsters':
-				return {ctor: '_Tuple2', _0: model, _1: _elm_lang$core$Platform_Cmd$none};
-			case 'InitialiseLevel':
-				return {ctor: '_Tuple2', _0: model, _1: _elm_lang$core$Platform_Cmd$none};
-			case 'NoOp':
-				return {ctor: '_Tuple2', _0: model, _1: _elm_lang$core$Platform_Cmd$none};
-			case 'StartGame':
-				var _p6 = A2(
-					_user$project$Main$update,
-					_user$project$Main$InitialiseLevel,
-					_elm_lang$core$Native_Utils.update(
-						model,
-						{
-							gameState: _user$project$Main$Playing,
-							level: _elm_lang$core$Maybe$Just(_user$project$Main$Level1)
-						}));
-				var updatedModel = _p6._0;
-				var updatedCmd = _p6._1;
-				var _p7 = function () {
-					var _p8 = updatedModel.level;
-					if (_p8.ctor === 'Just') {
-						switch (_p8._0.ctor) {
-							case 'Level1':
-								return {ctor: '_Tuple3', _0: 2, _1: 1, _2: 3};
-							case 'Level2':
-								return {ctor: '_Tuple3', _0: 4, _1: 2, _2: 5};
-							default:
-								return {ctor: '_Tuple3', _0: 6, _1: 3, _2: 7};
+					return {ctor: '_Tuple2', _0: model, _1: _elm_lang$core$Platform_Cmd$none};
+				case 'CreateClients':
+					return {ctor: '_Tuple2', _0: model, _1: _elm_lang$core$Platform_Cmd$none};
+				case 'CreateFraudsters':
+					return {ctor: '_Tuple2', _0: model, _1: _elm_lang$core$Platform_Cmd$none};
+				case 'InitialiseLevel':
+					var _p6 = function () {
+						var _p7 = model.level;
+						if (_p7.ctor === 'Just') {
+							switch (_p7._0.ctor) {
+								case 'Level1':
+									return {ctor: '_Tuple3', _0: 2, _1: 1, _2: 3};
+								case 'Level2':
+									return {ctor: '_Tuple3', _0: 4, _1: 2, _2: 5};
+								default:
+									return {ctor: '_Tuple3', _0: 6, _1: 3, _2: 7};
+							}
+						} else {
+							return {ctor: '_Tuple3', _0: 0, _1: 0, _2: 0};
 						}
-					} else {
-						return {ctor: '_Tuple3', _0: 0, _1: 0, _2: 0};
-					}
-				}();
-				var numberOfClients = _p7._0;
-				var numberOfFraudsters = _p7._1;
-				var rows = _p7._2;
-				var emptySpaces = _elm_lang$core$Dict$isEmpty(model.gridContents) ? ((rows * rows) - 1) : _elm_lang$core$List$length(
-					A2(
-						_elm_lang$core$List$filter,
-						function (index) {
-							return _elm_lang$core$Native_Utils.eq(index, _user$project$Main$Empty);
-						},
-						_elm_lang$core$Dict$values(model.gridContents)));
-				var generators = A2(_user$project$Main$createRandomNumberGeneratorList, emptySpaces, numberOfClients + numberOfFraudsters);
-				var nextAvailibleNumber = F3(
-					function (currentNumber, centre, list) {
-						var filtered = A2(
-							_elm_lang$core$List$filter,
-							function (item) {
-								return (!_elm_lang$core$Native_Utils.eq(
-									_elm_lang$core$Basics$toFloat(item),
-									centre)) && (!A2(_elm_lang$core$List$member, item, list));
-							},
-							A2(_elm_lang$core$List$range, 1, rows * rows));
-						var _p9 = A2(
-							_elm_lang$core$Debug$log,
-							'test',
-							{ctor: '_Tuple2', _0: list, _1: filtered});
-						return _elm_lang$core$List$head(
-							A2(_elm_lang$core$List$drop, currentNumber - 1, filtered));
-					});
-				var correctNumbers = F2(
-					function (centre, list) {
-						return A2(
-							_elm_lang$core$List$indexedMap,
-							F2(
-								function (index, randomNumber) {
-									var listSoFar = A2(
-										correctNumbers,
-										centre,
-										A2(_elm_lang$core$List$take, index, list));
-									var correctedRandomNumber = function () {
-										var _p10 = A3(nextAvailibleNumber, randomNumber, centre, listSoFar);
-										if (_p10.ctor === 'Just') {
-											return _p10._0;
-										} else {
-											return randomNumber;
-										}
-									}();
-									return correctedRandomNumber;
-								}),
-							A2(
-								_elm_lang$core$List$map,
-								function (item) {
-									return (_elm_lang$core$Native_Utils.cmp(
-										_elm_lang$core$Basics$toFloat(item),
-										centre) > -1) ? (item + 1) : item;
-								},
-								list));
-					});
-				var randomNumbers = function () {
-					var _p11 = updatedModel.startedTime;
-					if (_p11.ctor === 'Just') {
-						return A2(
-							correctNumbers,
-							((_elm_lang$core$Basics$toFloat(rows) * _elm_lang$core$Basics$toFloat(rows)) + 1) / 2,
-							A2(
-								_elm_lang$core$Debug$log,
-								'random output',
-								A2(
-									_user$project$Main$randomSequence,
-									generators,
-									_elm_lang$core$Basics$floor(_p11._0))));
-					} else {
-						return {ctor: '[]'};
-					}
-				}();
-				var clientRandomList = A2(
-					_elm_lang$core$Debug$log,
-					'clients',
-					A2(_elm_lang$core$List$take, numberOfClients, randomNumbers));
-				var fraudsterRandomList = A2(
-					_elm_lang$core$Debug$log,
-					'fraudsters',
-					A2(_elm_lang$core$List$drop, numberOfClients, randomNumbers));
-				var gridContents = _elm_lang$core$Dict$fromList(
-					A2(
-						_elm_lang$core$List$map,
-						function (index) {
-							var cellType = A2(_elm_lang$core$List$member, index, clientRandomList) ? _user$project$Main$Client : (A2(_elm_lang$core$List$member, index, fraudsterRandomList) ? _user$project$Main$Fraudster : _user$project$Main$Empty);
-							return {ctor: '_Tuple2', _0: index, _1: cellType};
-						},
+					}();
+					var numberOfClients = _p6._0;
+					var numberOfFraudsters = _p6._1;
+					var rows = _p6._2;
+					var emptySpaces = _elm_lang$core$Dict$isEmpty(model.gridContents) ? ((rows * rows) - 1) : _elm_lang$core$List$length(
 						A2(
 							_elm_lang$core$List$filter,
 							function (index) {
-								var floatRows = _elm_lang$core$Basics$toFloat(rows);
-								return !_elm_lang$core$Native_Utils.eq(
-									_elm_lang$core$Basics$toFloat(index),
-									((floatRows * floatRows) + 1) / 2);
+								return _elm_lang$core$Native_Utils.eq(index, _user$project$Main$Empty);
 							},
-							A2(_elm_lang$core$List$range, 1, rows * rows))));
-				return {
-					ctor: '_Tuple2',
-					_0: _elm_lang$core$Native_Utils.update(
-						updatedModel,
-						{gridContents: gridContents}),
-					_1: updatedCmd
-				};
-			default:
-				return {
-					ctor: '_Tuple2',
-					_0: _elm_lang$core$Native_Utils.update(
+							_elm_lang$core$Dict$values(model.gridContents)));
+					var generators = A2(_user$project$Main$createRandomNumberGeneratorList, emptySpaces, numberOfClients + numberOfFraudsters);
+					var nextAvailibleNumber = F3(
+						function (currentNumber, centre, list) {
+							var filtered = A2(
+								_elm_lang$core$List$filter,
+								function (item) {
+									return (!_elm_lang$core$Native_Utils.eq(
+										_elm_lang$core$Basics$toFloat(item),
+										centre)) && (!A2(_elm_lang$core$List$member, item, list));
+								},
+								A2(_elm_lang$core$List$range, 1, rows * rows));
+							return _elm_lang$core$List$head(
+								A2(_elm_lang$core$List$drop, currentNumber - 1, filtered));
+						});
+					var correctNumbers = F2(
+						function (centre, list) {
+							return A2(
+								_elm_lang$core$List$indexedMap,
+								F2(
+									function (index, randomNumber) {
+										var listSoFar = A2(
+											correctNumbers,
+											centre,
+											A2(_elm_lang$core$List$take, index, list));
+										var correctedRandomNumber = function () {
+											var _p8 = A3(nextAvailibleNumber, randomNumber, centre, listSoFar);
+											if (_p8.ctor === 'Just') {
+												return _p8._0;
+											} else {
+												return randomNumber;
+											}
+										}();
+										return correctedRandomNumber;
+									}),
+								A2(
+									_elm_lang$core$List$map,
+									function (item) {
+										return (_elm_lang$core$Native_Utils.cmp(
+											_elm_lang$core$Basics$toFloat(item),
+											centre) > -1) ? (item + 1) : item;
+									},
+									list));
+						});
+					var randomNumbers = function () {
+						var _p9 = model.startedTime;
+						if (_p9.ctor === 'Just') {
+							return A2(
+								correctNumbers,
+								((_elm_lang$core$Basics$toFloat(rows) * _elm_lang$core$Basics$toFloat(rows)) + 1) / 2,
+								A2(
+									_user$project$Main$randomSequence,
+									generators,
+									_elm_lang$core$Basics$floor(_p9._0)));
+						} else {
+							return {ctor: '[]'};
+						}
+					}();
+					var clientRandomList = A2(_elm_lang$core$List$take, numberOfClients, randomNumbers);
+					var fraudsterRandomList = A2(_elm_lang$core$List$drop, numberOfClients, randomNumbers);
+					var gridContents = _elm_lang$core$Dict$fromList(
+						A2(
+							_elm_lang$core$List$map,
+							function (index) {
+								var cellType = A2(_elm_lang$core$List$member, index, clientRandomList) ? _user$project$Main$Client : (A2(_elm_lang$core$List$member, index, fraudsterRandomList) ? _user$project$Main$Fraudster : _user$project$Main$Empty);
+								return {ctor: '_Tuple2', _0: index, _1: cellType};
+							},
+							A2(
+								_elm_lang$core$List$filter,
+								function (index) {
+									var floatRows = _elm_lang$core$Basics$toFloat(rows);
+									return !_elm_lang$core$Native_Utils.eq(
+										_elm_lang$core$Basics$toFloat(index),
+										((floatRows * floatRows) + 1) / 2);
+								},
+								A2(_elm_lang$core$List$range, 1, rows * rows))));
+					return {
+						ctor: '_Tuple2',
+						_0: _elm_lang$core$Native_Utils.update(
+							model,
+							{gridContents: gridContents}),
+						_1: _elm_lang$core$Platform_Cmd$none
+					};
+				case 'NoOp':
+					return {ctor: '_Tuple2', _0: model, _1: _elm_lang$core$Platform_Cmd$none};
+				case 'StartGame':
+					var _v7 = _user$project$Main$InitialiseLevel,
+						_v8 = _elm_lang$core$Native_Utils.update(
 						model,
 						{
-							startedTime: _elm_lang$core$Maybe$Just(_p1._0)
-						}),
-					_1: _elm_lang$core$Platform_Cmd$none
-				};
+							gameState: _user$project$Main$Playing,
+							level: _elm_lang$core$Maybe$Just(_user$project$Main$Level1),
+							score: 0
+						});
+					msg = _v7;
+					model = _v8;
+					continue update;
+				case 'StartedTime':
+					return {
+						ctor: '_Tuple2',
+						_0: _elm_lang$core$Native_Utils.update(
+							model,
+							{
+								startedTime: _elm_lang$core$Maybe$Just(_p3._0)
+							}),
+						_1: _elm_lang$core$Platform_Cmd$none
+					};
+				default:
+					var _v9 = _user$project$Main$InitialiseLevel,
+						_v10 = _elm_lang$core$Native_Utils.update(
+						model,
+						{
+							startedTime: _elm_lang$core$Maybe$Just(_p3._0),
+							level: _elm_lang$core$Maybe$Just(
+								_user$project$Main$scoreToLevel(model.score))
+						});
+					msg = _v9;
+					model = _v10;
+					continue update;
+			}
 		}
 	});
+var _user$project$Main$CreateFraudsters = {ctor: 'CreateFraudsters'};
+var _user$project$Main$CreateClients = {ctor: 'CreateClients'};
 var _user$project$Main$ClickBox = function (a) {
 	return {ctor: 'ClickBox', _0: a};
 };
@@ -9321,11 +9366,11 @@ var _user$project$Main$makeGrid = F2(
 			_elm_lang$core$List$map,
 			function (index) {
 				var contentClass = function () {
-					var _p12 = A2(_elm_lang$core$Dict$get, index, gridContents);
-					_v5_2:
+					var _p10 = A2(_elm_lang$core$Dict$get, index, gridContents);
+					_v11_2:
 					do {
-						if (_p12.ctor === 'Just') {
-							switch (_p12._0.ctor) {
+						if (_p10.ctor === 'Just') {
+							switch (_p10._0.ctor) {
 								case 'Client':
 									return {
 										ctor: '::',
@@ -9339,10 +9384,10 @@ var _user$project$Main$makeGrid = F2(
 										_1: {ctor: '[]'}
 									};
 								default:
-									break _v5_2;
+									break _v11_2;
 							}
 						} else {
-							break _v5_2;
+							break _v11_2;
 						}
 					} while(false);
 					return {ctor: '[]'};
@@ -9392,10 +9437,10 @@ var _user$project$Main$makeGrid = F2(
 			A2(_elm_lang$core$List$range, 1, rows * rows));
 	});
 var _user$project$Main$view = function (model) {
-	var _p13 = function () {
-		var _p14 = model.level;
-		if (_p14.ctor === 'Just') {
-			switch (_p14._0.ctor) {
+	var _p11 = function () {
+		var _p12 = model.level;
+		if (_p12.ctor === 'Just') {
+			switch (_p12._0.ctor) {
 				case 'Level1':
 					return {
 						ctor: '_Tuple2',
@@ -9435,10 +9480,10 @@ var _user$project$Main$view = function (model) {
 			};
 		}
 	}();
-	var levelClass = _p13._0;
-	var grid = _p13._1;
-	var _p15 = model.gameState;
-	switch (_p15.ctor) {
+	var levelClass = _p11._0;
+	var grid = _p11._1;
+	var _p13 = model.gameState;
+	switch (_p13.ctor) {
 		case 'Welcome':
 			return A2(
 				_elm_lang$html$Html$div,
@@ -9482,16 +9527,32 @@ var _user$project$Main$view = function (model) {
 					ctor: '::',
 					_0: A2(
 						_elm_lang$html$Html$div,
-						A2(
-							_elm_lang$core$Basics_ops['++'],
-							{
-								ctor: '::',
-								_0: _elm_lang$html$Html_Attributes$class('grid-container'),
-								_1: {ctor: '[]'}
-							},
-							levelClass),
-						grid),
-					_1: {ctor: '[]'}
+						{
+							ctor: '::',
+							_0: _elm_lang$html$Html_Attributes$class('score'),
+							_1: {ctor: '[]'}
+						},
+						{
+							ctor: '::',
+							_0: _elm_lang$html$Html$text(
+								_elm_lang$core$Basics$toString(model.score)),
+							_1: {ctor: '[]'}
+						}),
+					_1: {
+						ctor: '::',
+						_0: A2(
+							_elm_lang$html$Html$div,
+							A2(
+								_elm_lang$core$Basics_ops['++'],
+								{
+									ctor: '::',
+									_0: _elm_lang$html$Html_Attributes$class('grid-container'),
+									_1: {ctor: '[]'}
+								},
+								levelClass),
+							grid),
+						_1: {ctor: '[]'}
+					}
 				});
 		default:
 			return A2(

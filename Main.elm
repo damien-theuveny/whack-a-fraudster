@@ -80,6 +80,7 @@ type Msg
     | NoOp
     | StartGame
     | StartedTime Time
+    | Tick Time
 
 
 
@@ -90,22 +91,33 @@ update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
     case msg of
         ClickBox index ->
-            let
-                _ =
-                    Debug.log "clicked" (Dict.get index model.gridContents)
+            case Dict.get index model.gridContents of
+                Just Fraudster ->
+                    ( { model
+                        | score = model.score + 50
+                        , gridContents =
+                            Dict.update
+                                index
+                                (Maybe.map (\previousContentTypes -> Empty))
+                                model.gridContents
+                      }
+                    , Cmd.none
+                    )
 
-                ( updatedModel, updatedCmd ) =
-                    case Dict.get index model.gridContents of
-                        Just Fraudster ->
-                            update CreateFraudsters { model | score = model.score + 50 }
+                Just Client ->
+                    ( { model
+                        | score = model.score - 100
+                        , gridContents =
+                            Dict.update
+                                index
+                                (Maybe.map (\previousContentTypes -> Empty))
+                                model.gridContents
+                      }
+                    , Cmd.none
+                    )
 
-                        Just Client ->
-                            update CreateClients { model | score = model.score - 100 }
-
-                        _ ->
-                            update NoOp model
-            in
-            ( updatedModel, updatedCmd )
+                _ ->
+                    ( model, Cmd.none )
 
         CreateClients ->
             ( model, Cmd.none )
@@ -114,15 +126,9 @@ update msg model =
             ( model, Cmd.none )
 
         InitialiseLevel ->
-            ( model, Cmd.none )
-
-        NoOp ->
-            ( model, Cmd.none )
-
-        StartGame ->
             let
                 ( numberOfClients, numberOfFraudsters, rows ) =
-                    case updatedModel.level of
+                    case model.level of
                         Just Level1 ->
                             ( 2, 1, 3 )
 
@@ -148,7 +154,7 @@ update msg model =
 
                 randomNumbers =
                     -- correctNumbers ((toFloat rows * toFloat rows + 1) / 2) [ 1, 1, 1 ]
-                    case updatedModel.startedTime of
+                    case model.startedTime of
                         Just time ->
                             randomSequence generators (floor time)
                                 |> correctNumbers ((toFloat rows * toFloat rows + 1) / 2)
@@ -227,19 +233,31 @@ update msg model =
                                 ( index, cellType )
                             )
                         |> Dict.fromList
-
-                ( updatedModel, updatedCmd ) =
-                    update
-                        InitialiseLevel
-                        { model
-                            | gameState = Playing
-                            , level = Just Level1
-                        }
             in
-            ( { updatedModel | gridContents = gridContents }, updatedCmd )
+            ( { model | gridContents = gridContents }, Cmd.none )
+
+        NoOp ->
+            ( model, Cmd.none )
+
+        StartGame ->
+            update
+                InitialiseLevel
+                { model
+                    | gameState = Playing
+                    , level = Just Level1
+                    , score = 0
+                }
 
         StartedTime time ->
             ( { model | startedTime = Just time }, Cmd.none )
+
+        Tick time ->
+            update InitialiseLevel { model | startedTime = Just time, level = Just (scoreToLevel model.score) }
+
+
+insertContentType : Int -> ContentType -> Dict Int ContentType -> Dict Int ContentType
+insertContentType index contentType gridContents =
+    Dict.insert index contentType gridContents
 
 
 
@@ -272,7 +290,9 @@ view model =
 
         Playing ->
             div []
-                [ div ([ class "grid-container" ] ++ levelClass) grid ]
+                [ div [ class "score" ] [ text (toString model.score) ]
+                , div ([ class "grid-container" ] ++ levelClass) grid
+                ]
 
         Results ->
             div [] [ text (toString model.score) ]
@@ -359,4 +379,21 @@ makeGrid rows gridContents =
 
 subscriptions : Model -> Sub Msg
 subscriptions model =
-    Sub.none
+    let
+        interval =
+            case model.level of
+                Just Level1 ->
+                    2 * Time.second
+
+                Just Level2 ->
+                    Time.second
+
+                _ ->
+                    Time.second / 2
+    in
+    case model.gameState of
+        Playing ->
+            Time.every interval Tick
+
+        _ ->
+            Sub.none
