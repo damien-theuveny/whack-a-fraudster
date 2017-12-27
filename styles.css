@@ -1,5 +1,50 @@
+@font-face {
+  font-family: "Titillium Web";
+  font-style: normal;
+  font-weight: 300;
+  src: local("Titillium WebLight"), local("TitilliumWeb-Light"), url("fonts/TitilliumWeb-Light.ttf") format("truetype");
+}
+
+@font-face {
+  font-family: "Titillium Web";
+  font-style: normal;
+  font-weight: 400;
+  src: local("Titillium Web"), local("TitilliumWeb"), url("fonts/TitilliumWeb-Regular.ttf") format("truetype");
+}
+
+@font-face {
+  font-family: "Titillium Web";
+  font-style: normal;
+  font-weight: 600;
+  src: local("Titillium Web Semibold"), local("TitilliumWeb-Semibold"), url("fonts/TitilliumWeb-SemiBold.ttf") format("truetype");
+}
+
+@font-face {
+  font-family: "Titillium Web";
+  font-style: normal;
+  font-weight: 700;
+  src: local("Titillium Web Bold"), local("TitilliumWeb-Bold"), url("fonts/TitilliumWeb-Bold.ttf") format("truetype");
+}
+
+@font-face {
+  font-family: "Titillium Web";
+  font-style: normal;
+  font-weight: 800;
+  src: local("Titillium Web Extrabold"), local("TitilliumWeb-Extrabold"), url("fonts/TitilliumWeb-Extrabold.ttf") format("truetype");
+}
+
 body {
   margin: 0;
+  font-family: "Titillium Web";
+}
+
+button {
+  padding: 5px 10px;
+  font-family: "Titillium Web";
+  background-color: rgb(10,10,10);
+  color: rgba(240,240,240,1);
+  border: none;
+  border-radius: 0;
 }
 
 .welcome-container {
@@ -55,4 +100,19 @@ body {
 
 .fraudster {
   background-color: rgba(255, 0, 0, 0.5);
+}
+
+.score {
+  text-align: center;
+}
+
+.reset {
+  position: absolute;
+  display: inline-block;
+  top: 15px;
+  right: 15px;
+}
+
+button:focus {
+  outline: none;
 }

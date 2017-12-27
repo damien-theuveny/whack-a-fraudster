@@ -299,6 +299,27 @@ insertContentType index contentType gridContents =
 
 view : Model -> Html Msg
 view model =
+    case model.gameState of
+        Welcome ->
+            welcomeView
+
+        Playing ->
+            inGameView model
+
+        Results ->
+            resultsView model
+
+
+welcomeView : Html Msg
+welcomeView =
+    div [ class "welcome-container" ]
+        [ h1 [] [ text "Welcome to Whack-a-Fraudster" ]
+        , button [ class "start", onClick StartGame ] [ text "Start" ]
+        ]
+
+
+inGameView : Model -> Html Msg
+inGameView model =
     let
         ( levelClass, grid ) =
             case model.level of
@@ -317,25 +338,20 @@ view model =
                 Nothing ->
                     ( [], [] )
     in
-    case model.gameState of
-        Welcome ->
-            div [ class "welcome-container" ]
-                [ h1 [] [ text "Welcome to Whack-a-Fraudster" ]
-                , button [ onClick StartGame ] [ text "Start" ]
-                ]
+    div []
+        [ div [ class "score" ] [ text (toString model.score) ]
+        , button [ class "reset", onClick NoOp ] [ text "X" ]
+        , div ([ class "grid-container" ] ++ levelClass) grid
+        ]
 
-        Playing ->
-            div []
-                [ div [ class "score" ] [ text (toString model.score) ]
-                , div ([ class "grid-container" ] ++ levelClass) grid
-                ]
 
-        Results ->
-            div []
-                [ div [ class "score" ] [ text (toString model.score) ]
+resultsView : Model -> Html Msg
+resultsView model =
+    div []
+        [ div [ class "score" ] [ text (toString model.score) ]
 
-                -- , div [] [ text Time.inSeconds (model.lastTick - model.startedTime)]
-                ]
+        -- , div [] [ text Time.inSeconds (model.lastTick - model.startedTime)]
+        ]
 
 
 getTime =
@@ -428,7 +444,7 @@ subscriptions model =
                     Time.second * 2
 
                 Just Level2 ->
-                    Time.second * 1.25
+                    Time.second * 1.5
 
                 Just Level3 ->
                     Time.second * 1

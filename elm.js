@@ -9081,6 +9081,28 @@ var _user$project$Main$createRandomNumberGeneratorList = F2(
 			},
 			A2(_elm_lang$core$List$range, 1, emptyCells));
 	});
+var _user$project$Main$resultsView = function (model) {
+	return A2(
+		_elm_lang$html$Html$div,
+		{ctor: '[]'},
+		{
+			ctor: '::',
+			_0: A2(
+				_elm_lang$html$Html$div,
+				{
+					ctor: '::',
+					_0: _elm_lang$html$Html_Attributes$class('score'),
+					_1: {ctor: '[]'}
+				},
+				{
+					ctor: '::',
+					_0: _elm_lang$html$Html$text(
+						_elm_lang$core$Basics$toString(model.score)),
+					_1: {ctor: '[]'}
+				}),
+			_1: {ctor: '[]'}
+		});
+};
 var _user$project$Main$insertContentType = F3(
 	function (index, contentType, gridContents) {
 		return A3(_elm_lang$core$Dict$insert, index, contentType, gridContents);
@@ -9124,7 +9146,7 @@ var _user$project$Main$subscriptions = function (model) {
 					case 'Level1':
 						return _elm_lang$core$Time$second * 2;
 					case 'Level2':
-						return _elm_lang$core$Time$second * 1.25;
+						return _elm_lang$core$Time$second * 1.5;
 					case 'Level3':
 						return _elm_lang$core$Time$second * 1;
 					default:
@@ -9149,6 +9171,40 @@ var _user$project$Main$StartedTime = function (a) {
 var _user$project$Main$getTime = A2(_elm_lang$core$Task$perform, _user$project$Main$StartedTime, _elm_lang$core$Time$now);
 var _user$project$Main$init = {ctor: '_Tuple2', _0: _user$project$Main$initialModel, _1: _user$project$Main$getTime};
 var _user$project$Main$StartGame = {ctor: 'StartGame'};
+var _user$project$Main$welcomeView = A2(
+	_elm_lang$html$Html$div,
+	{
+		ctor: '::',
+		_0: _elm_lang$html$Html_Attributes$class('welcome-container'),
+		_1: {ctor: '[]'}
+	},
+	{
+		ctor: '::',
+		_0: A2(
+			_elm_lang$html$Html$h1,
+			{ctor: '[]'},
+			{
+				ctor: '::',
+				_0: _elm_lang$html$Html$text('Welcome to Whack-a-Fraudster'),
+				_1: {ctor: '[]'}
+			}),
+		_1: {
+			ctor: '::',
+			_0: A2(
+				_elm_lang$html$Html$button,
+				{
+					ctor: '::',
+					_0: _elm_lang$html$Html_Events$onClick(_user$project$Main$StartGame),
+					_1: {ctor: '[]'}
+				},
+				{
+					ctor: '::',
+					_0: _elm_lang$html$Html$text('Start'),
+					_1: {ctor: '[]'}
+				}),
+			_1: {ctor: '[]'}
+		}
+	});
 var _user$project$Main$NoOp = {ctor: 'NoOp'};
 var _user$project$Main$InitialiseLevel = {ctor: 'InitialiseLevel'};
 var _user$project$Main$GameEnded = {ctor: 'GameEnded'};
@@ -9498,7 +9554,7 @@ var _user$project$Main$makeGrid = F2(
 			},
 			A2(_elm_lang$core$List$range, 1, rows * rows));
 	});
-var _user$project$Main$view = function (model) {
+var _user$project$Main$inGameView = function (model) {
 	var _p13 = function () {
 		var _p14 = model.level;
 		if (_p14.ctor === 'Just') {
@@ -9554,99 +9610,69 @@ var _user$project$Main$view = function (model) {
 	}();
 	var levelClass = _p13._0;
 	var grid = _p13._1;
-	var _p15 = model.gameState;
-	switch (_p15.ctor) {
-		case 'Welcome':
-			return A2(
+	return A2(
+		_elm_lang$html$Html$div,
+		{ctor: '[]'},
+		{
+			ctor: '::',
+			_0: A2(
 				_elm_lang$html$Html$div,
 				{
 					ctor: '::',
-					_0: _elm_lang$html$Html_Attributes$class('welcome-container'),
+					_0: _elm_lang$html$Html_Attributes$class('score'),
 					_1: {ctor: '[]'}
 				},
 				{
 					ctor: '::',
-					_0: A2(
-						_elm_lang$html$Html$h1,
-						{ctor: '[]'},
-						{
-							ctor: '::',
-							_0: _elm_lang$html$Html$text('Welcome to Whack-a-Fraudster'),
-							_1: {ctor: '[]'}
-						}),
-					_1: {
+					_0: _elm_lang$html$Html$text(
+						_elm_lang$core$Basics$toString(model.score)),
+					_1: {ctor: '[]'}
+				}),
+			_1: {
+				ctor: '::',
+				_0: A2(
+					_elm_lang$html$Html$button,
+					{
 						ctor: '::',
-						_0: A2(
-							_elm_lang$html$Html$button,
+						_0: _elm_lang$html$Html_Attributes$class('reset'),
+						_1: {
+							ctor: '::',
+							_0: _elm_lang$html$Html_Events$onClick(_user$project$Main$NoOp),
+							_1: {ctor: '[]'}
+						}
+					},
+					{
+						ctor: '::',
+						_0: _elm_lang$html$Html$text('X'),
+						_1: {ctor: '[]'}
+					}),
+				_1: {
+					ctor: '::',
+					_0: A2(
+						_elm_lang$html$Html$div,
+						A2(
+							_elm_lang$core$Basics_ops['++'],
 							{
 								ctor: '::',
-								_0: _elm_lang$html$Html_Events$onClick(_user$project$Main$StartGame),
+								_0: _elm_lang$html$Html_Attributes$class('grid-container'),
 								_1: {ctor: '[]'}
 							},
-							{
-								ctor: '::',
-								_0: _elm_lang$html$Html$text('Start'),
-								_1: {ctor: '[]'}
-							}),
-						_1: {ctor: '[]'}
-					}
-				});
-		case 'Playing':
-			return A2(
-				_elm_lang$html$Html$div,
-				{ctor: '[]'},
-				{
-					ctor: '::',
-					_0: A2(
-						_elm_lang$html$Html$div,
-						{
-							ctor: '::',
-							_0: _elm_lang$html$Html_Attributes$class('score'),
-							_1: {ctor: '[]'}
-						},
-						{
-							ctor: '::',
-							_0: _elm_lang$html$Html$text(
-								_elm_lang$core$Basics$toString(model.score)),
-							_1: {ctor: '[]'}
-						}),
-					_1: {
-						ctor: '::',
-						_0: A2(
-							_elm_lang$html$Html$div,
-							A2(
-								_elm_lang$core$Basics_ops['++'],
-								{
-									ctor: '::',
-									_0: _elm_lang$html$Html_Attributes$class('grid-container'),
-									_1: {ctor: '[]'}
-								},
-								levelClass),
-							grid),
-						_1: {ctor: '[]'}
-					}
-				});
-		default:
-			return A2(
-				_elm_lang$html$Html$div,
-				{ctor: '[]'},
-				{
-					ctor: '::',
-					_0: A2(
-						_elm_lang$html$Html$div,
-						{
-							ctor: '::',
-							_0: _elm_lang$html$Html_Attributes$class('score'),
-							_1: {ctor: '[]'}
-						},
-						{
-							ctor: '::',
-							_0: _elm_lang$html$Html$text(
-								_elm_lang$core$Basics$toString(model.score)),
-							_1: {ctor: '[]'}
-						}),
+							levelClass),
+						grid),
 					_1: {ctor: '[]'}
-				});
+				}
+			}
+		});
+};
+var _user$project$Main$view = function (model) {
+	var _p15 = model.gameState;
+	switch (_p15.ctor) {
+		case 'Welcome':
+			return _user$project$Main$welcomeView;
+		case 'Playing':
+			return _user$project$Main$inGameView(model);
+		default:
+			return _user$project$Main$resultsView(model);
 	}
 };
 var _user$project$Main$main = _elm_lang$html$Html$program(
