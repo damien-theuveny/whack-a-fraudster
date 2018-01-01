@@ -25,11 +25,12 @@ main =
 
 
 type alias Model =
-    { gameState : GameState
+    { bonus : Bool
+    , gameState : GameState
     , gridContents : Dict Int ContentType
     , level : Maybe Level
     , randomSequence : List Int
-    , score : Int
+    , score : ( Int, Int )
     , startedTime : Maybe Time
     , lastTick : Maybe Time
     }
@@ -37,11 +38,12 @@ type alias Model =
 
 initialModel : Model
 initialModel =
-    { gameState = Welcome
+    { bonus = False
+    , gameState = Welcome
     , gridContents = Dict.empty
     , level = Nothing
     , randomSequence = []
-    , score = 0
+    , score = ( 0, 0 )
     , startedTime = Nothing
     , lastTick = Nothing
     }
@@ -49,7 +51,7 @@ initialModel =
 
 init : ( Model, Cmd Msg )
 init =
-    ( initialModel, getTime )
+    ( initialModel, Task.perform StartedTime Time.now )
 
 
 
@@ -82,6 +84,7 @@ type Msg
     | GameEnded
     | InitialiseLevel
     | NoOp
+    | Reset
     | StartGame
     | StartedTime Time
     | Tick Time
@@ -98,7 +101,7 @@ update msg model =
             case Dict.get index model.gridContents of
                 Just Fraudster ->
                     ( { model
-                        | score = model.score + 50
+                        | score = ( Tuple.first model.score + 1, Tuple.second model.score )
                         , gridContents =
                             Dict.update
                                 index
@@ -110,7 +113,7 @@ update msg model =
 
                 Just Client ->
                     ( { model
-                        | score = model.score - 100
+                        | score = ( Tuple.first model.score, Tuple.second model.score + 1 )
                         , gridContents =
                             Dict.update
                                 index
@@ -248,14 +251,21 @@ update msg model =
         NoOp ->
             ( model, Cmd.none )
 
+        Reset ->
+            ( { model | gameState = Welcome }, Cmd.none )
+
         StartGame ->
-            update
-                InitialiseLevel
-                { model
-                    | gameState = Playing
-                    , level = Just Level1
-                    , score = 0
-                }
+            let
+                ( updatedState, updatedCmd ) =
+                    update
+                        InitialiseLevel
+                        { model
+                            | gameState = Playing
+                            , level = Just Level1
+                            , score = ( 0, 0 )
+                        }
+            in
+            ( updatedState, Cmd.batch [ updatedCmd, Task.perform StartedTime Time.now ] )
 
         StartedTime time ->
             ( { model | startedTime = Just time }, Cmd.none )
@@ -339,8 +349,8 @@ inGameView model =
                     ( [], [] )
     in
     div []
-        [ div [ class "score" ] [ text (toString model.score) ]
-        , button [ class "reset", onClick NoOp ] [ text "X" ]
+        [ div [ class "score" ] [ span [] [ text "Score: " ], span [] [ text (toString (translateScore model.score)) ] ]
+        , button [ class "reset", onClick Reset ] [ div [] [ text "X" ], span [] [ text "Reset" ] ]
         , div ([ class "grid-container" ] ++ levelClass) grid
         ]
 
@@ -348,14 +358,11 @@ inGameView model =
 resultsView : Model -> Html Msg
 resultsView model =
     div []
-        [ div [ class "score" ] [ text (toString model.score) ]
-
-        -- , div [] [ text Time.inSeconds (model.lastTick - model.startedTime)]
+        [ div [ class "score" ] [ span [] [ text "Score: " ], span [] [ text (toString (translateScore model.score)) ] ]
+        , button [ class "reset", onClick Reset ] [ div [] [ text "X" ], span [] [ text "Reset" ] ]
+        , div [ class "result-graph" ] []
+        , div [ class "playing-time" ] [ text (calculatePlayingTime model.lastTick model.startedTime) ]
         ]
-
-
-getTime =
-    Task.perform StartedTime Time.now
 
 
 createRandomNumberGeneratorList : Int -> Int -> List (Random.Generator Int)
@@ -386,16 +393,35 @@ randomSequence generators seed =
             )
 
 
-scoreToLevel : Int -> Level
+scoreToLevel : ( Int, Int ) -> Level
 scoreToLevel score =
-    if score < 350 then
+    let
+        translatedScore =
+            translateScore score
+    in
+    if translatedScore < 350 then
         Level1
-    else if score >= 350 && score < 1000 then
+    else if translatedScore >= 350 && translatedScore < 1000 then
         Level2
-    else if score >= 1000 && score < 2000 then
+    else if translatedScore >= 1000 && translatedScore < 2000 then
         Level3
     else
         Level4
+
+
+translateScore : ( Int, Int ) -> Int
+translateScore ( fraudsters, customers ) =
+    fraudsters * 50 - customers * 100
+
+
+calculatePlayingTime : Maybe Time -> Maybe Time -> String
+calculatePlayingTime lastTick startedTime =
+    case ( lastTick, startedTime ) of
+        ( Just lastTick_, Just startedTime_ ) ->
+            "Played for " ++ toString (Time.inSeconds (lastTick_ - startedTime_)) ++ " Seconds"
+
+        _ ->
+            "0"
 
 
 makeGrid : Int -> Dict Int ContentType -> List (Html Msg)
