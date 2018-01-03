@@ -81,6 +81,7 @@ type Msg
     = ClickBox Int
     | CreateClients
     | CreateFraudsters
+    | EndGame
     | GameEnded
     | InitialiseLevel
     | NoOp
@@ -130,6 +131,9 @@ update msg model =
             ( model, Cmd.none )
 
         CreateFraudsters ->
+            ( model, Cmd.none )
+
+        EndGame ->
             ( model, Cmd.none )
 
         GameEnded ->
@@ -352,6 +356,7 @@ inGameView model =
         [ div [ class "score" ] [ span [] [ text "Score: " ], span [] [ text (toString (translateScore model.score)) ] ]
         , button [ class "reset", onClick Reset ] [ div [] [ text "X" ], span [] [ text "Reset" ] ]
         , div ([ class "grid-container" ] ++ levelClass) grid
+        , button [ class "end-game", onClick Reset ] [ text "End Game" ]
         ]
 
 
@@ -360,7 +365,19 @@ resultsView model =
     div []
         [ div [ class "score" ] [ span [] [ text "Score: " ], span [] [ text (toString (translateScore model.score)) ] ]
         , button [ class "reset", onClick Reset ] [ div [] [ text "X" ], span [] [ text "Reset" ] ]
-        , div [ class "result-graph" ] []
+        , div [ class "result-graph" ]
+            [ div [ class "left-side" ]
+                [ div [ class "label" ] [ text "Fraudsters" ]
+                , div [ class "bar" ] []
+                , div [ class "label" ] [ text "Super Fraudsters" ]
+                ]
+            , div [ class "seperator" ] []
+            , div [ class "right-side" ]
+                [ div [ class "bar" ] []
+                , div [ class "label" ] [ text "Customers" ]
+                , div [ class "bar" ] []
+                ]
+            ]
         , div [ class "playing-time" ] [ text (calculatePlayingTime model.lastTick model.startedTime) ]
         ]
 

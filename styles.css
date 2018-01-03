@@ -36,6 +36,7 @@
 body {
   margin: 0;
   font-family: "Titillium Web";
+  height: 100%;
 }
 
 button {
@@ -111,6 +112,45 @@ button {
   display: inline-block;
   top: 15px;
   right: 15px;
+}
+
+.end-game {
+  position: absolute;
+  bottom: 20px;
+  width: 80px;
+  left: calc(50% - 40px);
+}
+
+.result-graph {
+  display: flex;
+  flex-direction: row;
+  margin: 50px 10%;
+}
+
+.result-graph .left-side, .result-graph .right-side {
+  flex: 1;
+}
+
+.result-graph .left-side {
+  text-align: right;
+}
+
+.result-graph .right-side {
+  text-align: left;
+}
+
+.result-graph .seperator {
+  margin: 0 5px;
+  width: 2px;
+  background-color: #000;
+}
+
+.result-graph .bar {
+  height: 20px;
+}
+
+.playing-time {
+  text-align: center;
 }
 
 button:focus {
