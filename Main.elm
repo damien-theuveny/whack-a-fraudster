@@ -30,9 +30,11 @@ type alias Model =
     , gridContents : Dict Int ContentType
     , level : Maybe Level
     , randomSequence : List Int
-    , score : ( Int, Int )
+    , superBadGuyTick : Maybe Int
+    , score : ( Int, Int, Int )
     , startedTime : Maybe Time
     , lastTick : Maybe Time
+    , tickCount : Int
     }
 
 
@@ -43,9 +45,11 @@ initialModel =
     , gridContents = Dict.empty
     , level = Nothing
     , randomSequence = []
-    , score = ( 0, 0 )
+    , superBadGuyTick = Nothing
+    , score = ( 0, 0, 0 )
     , startedTime = Nothing
     , lastTick = Nothing
+    , tickCount = 0
     }
 
 
@@ -74,6 +78,7 @@ type Level
 type ContentType
     = Empty
     | Fraudster
+    | SuperFraudster
     | Client
 
 
@@ -81,7 +86,6 @@ type Msg
     = ClickBox Int
     | CreateClients
     | CreateFraudsters
-    | EndGame
     | GameEnded
     | InitialiseLevel
     | NoOp
@@ -99,10 +103,26 @@ update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
     case msg of
         ClickBox index ->
+            let
+                ( fraudsters, customers, superbadGuy ) =
+                    model.score
+            in
             case Dict.get index model.gridContents of
+                Just SuperFraudster ->
+                    ( { model
+                        | score = ( fraudsters, customers, superbadGuy + 1 )
+                        , gridContents =
+                            Dict.update
+                                index
+                                (Maybe.map (\previousContentTypes -> Empty))
+                                model.gridContents
+                      }
+                    , Cmd.none
+                    )
+
                 Just Fraudster ->
                     ( { model
-                        | score = ( Tuple.first model.score + 1, Tuple.second model.score )
+                        | score = ( fraudsters + 1, customers, superbadGuy )
                         , gridContents =
                             Dict.update
                                 index
@@ -114,7 +134,7 @@ update msg model =
 
                 Just Client ->
                     ( { model
-                        | score = ( Tuple.first model.score, Tuple.second model.score + 1 )
+                        | score = ( fraudsters, customers + 1, superbadGuy )
                         , gridContents =
                             Dict.update
                                 index
@@ -133,14 +153,19 @@ update msg model =
         CreateFraudsters ->
             ( model, Cmd.none )
 
-        EndGame ->
-            ( model, Cmd.none )
-
         GameEnded ->
             ( { model | gameState = Results }, Cmd.none )
 
         InitialiseLevel ->
             let
+                isSuperBadGuyTick =
+                    case model.superBadGuyTick of
+                        Just superBadGuyTick ->
+                            superBadGuyTick == model.tickCount
+
+                        Nothing ->
+                            False
+
                 ( numberOfClients, numberOfFraudsters, rows ) =
                     case model.level of
                         Just Level1 ->
@@ -159,7 +184,24 @@ update msg model =
                             ( 0, 0, 0 )
 
                 emptySpaces =
-                    (rows * rows) - 1
+                    if isSuperBadGuyTick then
+                        (rows * rows) - 2
+                    else
+                        (rows * rows) - 1
+
+                superBadGuyGenerator =
+                    if isSuperBadGuyTick then
+                        createRandomNumberGeneratorList ((rows * rows) - 1) 1
+                    else
+                        []
+
+                superBadGuyRandomNumber =
+                    case model.lastTick of
+                        Just time ->
+                            randomSequence superBadGuyGenerator (floor time)
+
+                        Nothing ->
+                            []
 
                 generators =
                     createRandomNumberGeneratorList emptySpaces (numberOfClients + numberOfFraudsters)
@@ -226,6 +268,34 @@ update msg model =
                         |> List.drop numberOfClients
 
                 gridContents =
+                    let
+                        superFraudster =
+                            model.gridContents
+                                |> Dict.toList
+                                |> List.filter
+                                    (\( index, value ) -> value == SuperFraudster)
+
+                        superFraudsterHere index superFraudsterKeyValue =
+                            case superFraudsterKeyValue of
+                                Just ( superFraudsterKey, superFraudsterValue ) ->
+                                    superFraudsterKey == index
+
+                                Nothing ->
+                                    False
+
+                        pickCellType index superBadGuyRandomNumber clientRandomList fraudsterRandomList =
+                            if List.member index superBadGuyRandomNumber then
+                                SuperFraudster
+                            else if List.member index clientRandomList then
+                                Client
+                            else if List.member index fraudsterRandomList then
+                                Fraudster
+                            else
+                                Empty
+
+                        _ =
+                            Debug.log "test" ( superFraudster, model.tickCount, model.superBadGuyTick )
+                    in
                     List.range 1 (rows * rows)
                         |> List.filter
                             (\index ->
@@ -239,12 +309,18 @@ update msg model =
                             (\index ->
                                 let
                                     cellType =
-                                        if List.member index clientRandomList then
-                                            Client
-                                        else if List.member index fraudsterRandomList then
-                                            Fraudster
+                                        if not (List.isEmpty superFraudster) && superFraudsterHere index (List.head superFraudster) then
+                                            case model.superBadGuyTick of
+                                                Just superBadGuyTick ->
+                                                    if (superBadGuyTick + 3) > model.tickCount then
+                                                        SuperFraudster
+                                                    else
+                                                        pickCellType index superBadGuyRandomNumber clientRandomList fraudsterRandomList
+
+                                                Nothing ->
+                                                    pickCellType index superBadGuyRandomNumber clientRandomList fraudsterRandomList
                                         else
-                                            Empty
+                                            pickCellType index superBadGuyRandomNumber clientRandomList fraudsterRandomList
                                 in
                                 ( index, cellType )
                             )
@@ -266,13 +342,24 @@ update msg model =
                         { model
                             | gameState = Playing
                             , level = Just Level1
-                            , score = ( 0, 0 )
+                            , score = ( 0, 0, 0 )
+                            , tickCount = 0
+                            , superBadGuyTick = Nothing
                         }
             in
             ( updatedState, Cmd.batch [ updatedCmd, Task.perform StartedTime Time.now ] )
 
         StartedTime time ->
-            ( { model | startedTime = Just time }, Cmd.none )
+            let
+                superBadGuyTick =
+                    randomTick (floor time)
+            in
+            ( { model
+                | startedTime = Just time
+                , superBadGuyTick = Just superBadGuyTick
+              }
+            , Cmd.none
+            )
 
         Tick time ->
             let
@@ -299,7 +386,13 @@ update msg model =
             if gameEnded then
                 update GameEnded model
             else
-                update InitialiseLevel { model | lastTick = Just time, level = level }
+                update
+                    InitialiseLevel
+                    { model
+                        | lastTick = Just time
+                        , level = level
+                        , tickCount = model.tickCount + 1
+                    }
 
 
 insertContentType : Int -> ContentType -> Dict Int ContentType -> Dict Int ContentType
@@ -356,30 +449,85 @@ inGameView model =
         [ div [ class "score" ] [ span [] [ text "Score: " ], span [] [ text (toString (translateScore model.score)) ] ]
         , button [ class "reset", onClick Reset ] [ div [] [ text "X" ], span [] [ text "Reset" ] ]
         , div ([ class "grid-container" ] ++ levelClass) grid
-        , button [ class "end-game", onClick Reset ] [ text "End Game" ]
+        , button [ class "end-game", onClick GameEnded ] [ text "End Game" ]
         ]
 
 
 resultsView : Model -> Html Msg
 resultsView model =
+    let
+        ( fraudstersPercentage, customersPercentage, superbadGuyPercentage ) =
+            scoreToPercentage model.score
+
+        ( fraudsters, customers, superbadGuy ) =
+            model.score
+    in
     div []
         [ div [ class "score" ] [ span [] [ text "Score: " ], span [] [ text (toString (translateScore model.score)) ] ]
         , button [ class "reset", onClick Reset ] [ div [] [ text "X" ], span [] [ text "Reset" ] ]
         , div [ class "result-graph" ]
             [ div [ class "left-side" ]
                 [ div [ class "label" ] [ text "Fraudsters" ]
-                , div [ class "bar" ] []
-                , div [ class "label" ] [ text "Super Fraudsters" ]
+                , div
+                    [ class "bar"
+                    , title ("- " ++ toString (customers * 100) ++ " points")
+                    , style
+                        [ ( "width", toString customersPercentage ++ "%" )
+                        , ( "margin-left", toString (100 - customersPercentage) ++ "%" )
+                        ]
+                    ]
+                    []
+                , div [ class "label" ] [ text "Super Fraudster" ]
                 ]
             , div [ class "seperator" ] []
             , div [ class "right-side" ]
-                [ div [ class "bar" ] []
+                [ div
+                    [ class "bar"
+                    , title (toString (fraudsters * 50) ++ " points")
+                    , style [ ( "width", toString fraudstersPercentage ++ "%" ) ]
+                    ]
+                    []
                 , div [ class "label" ] [ text "Customers" ]
-                , div [ class "bar" ] []
+                , div
+                    [ class "bar"
+                    , title (toString (superbadGuy * 250) ++ " points")
+                    , style [ ( "width", toString superbadGuyPercentage ++ "%" ) ]
+                    ]
+                    []
                 ]
             ]
         , div [ class "playing-time" ] [ text (calculatePlayingTime model.lastTick model.startedTime) ]
         ]
+
+
+scoreToPercentage : ( Int, Int, Int ) -> ( Float, Float, Float )
+scoreToPercentage ( fraudsters, customers, superbadGuy ) =
+    let
+        fraudstersScore =
+            fraudsters * 50
+
+        customersScore =
+            customers * 100
+
+        superbadGuyScore =
+            superbadGuy * 250
+
+        total =
+            fraudstersScore + customersScore + superbadGuyScore
+    in
+    ( if total == 0 && fraudsters == 0 && customers == 0 then
+        0
+      else
+        (toFloat fraudstersScore / toFloat total) * 100
+    , if total == 0 && fraudsters == 0 && customers == 0 then
+        0
+      else
+        (toFloat customersScore / toFloat total) * 100
+    , if total == 0 && fraudsters == 0 && customers == 0 then
+        0
+      else
+        (toFloat superbadGuyScore / toFloat total) * 100
+    )
 
 
 createRandomNumberGeneratorList : Int -> Int -> List (Random.Generator Int)
@@ -410,11 +558,20 @@ randomSequence generators seed =
             )
 
 
-scoreToLevel : ( Int, Int ) -> Level
-scoreToLevel score =
+randomTick : Int -> Int
+randomTick seed =
+    let
+        ( generatorOutput, _ ) =
+            Random.step (Random.int 1 12) (Random.initialSeed seed)
+    in
+    generatorOutput
+
+
+scoreToLevel : ( Int, Int, Int ) -> Level
+scoreToLevel ( fraudsters, customers, superbadGuy ) =
     let
         translatedScore =
-            translateScore score
+            superbadGuy * 250 + fraudsters * 50
     in
     if translatedScore < 350 then
         Level1
@@ -426,19 +583,22 @@ scoreToLevel score =
         Level4
 
 
-translateScore : ( Int, Int ) -> Int
-translateScore ( fraudsters, customers ) =
-    fraudsters * 50 - customers * 100
+translateScore : ( Int, Int, Int ) -> Int
+translateScore ( fraudsters, customers, superbadGuy ) =
+    superbadGuy * 250 + fraudsters * 50 - customers * 100
 
 
 calculatePlayingTime : Maybe Time -> Maybe Time -> String
 calculatePlayingTime lastTick startedTime =
     case ( lastTick, startedTime ) of
         ( Just lastTick_, Just startedTime_ ) ->
-            "Played for " ++ toString (Time.inSeconds (lastTick_ - startedTime_)) ++ " Seconds"
+            if lastTick_ > startedTime_ then
+                "Played for " ++ toString (Time.inSeconds (lastTick_ - startedTime_)) ++ " Seconds"
+            else
+                ""
 
         _ ->
-            "0"
+            ""
 
 
 makeGrid : Int -> Dict Int ContentType -> List (Html Msg)
@@ -463,6 +623,9 @@ makeGrid rows gridContents =
 
                             Just Fraudster ->
                                 [ class "fraudster" ]
+
+                            Just SuperFraudster ->
+                                [ class "super-fraudster" ]
 
                             _ ->
                                 []

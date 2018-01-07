@@ -103,6 +103,10 @@ button {
   background-color: rgba(255, 0, 0, 0.5);
 }
 
+.super-fraudster {
+  background-color: rgba(255, 0, 0, 0.8);
+}
+
 .score {
   text-align: center;
 }
@@ -147,6 +151,7 @@ button {
 
 .result-graph .bar {
   height: 20px;
+  background-color: #000;
 }
 
 .playing-time {
