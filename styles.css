@@ -109,6 +109,7 @@ button {
 
 .score {
   text-align: center;
+  margin-top: 20px;
 }
 
 .reset {
@@ -156,6 +157,15 @@ button {
 
 .playing-time {
   text-align: center;
+}
+
+.scoreing-container {
+  text-align: center;
+  margin-top: 50px;
+}
+
+.player-scores-label {
+  margin-top: 20px;
 }
 
 button:focus {

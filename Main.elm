@@ -5,6 +5,8 @@ import Html exposing (..)
 import Html.Attributes exposing (..)
 import Html.Events exposing (..)
 import Html.Keyed
+import Json.Decode
+import Ports
 import Random
 import Task
 import Time exposing (Time)
@@ -29,6 +31,8 @@ type alias Model =
     , gameState : GameState
     , gridContents : Dict Int ContentType
     , level : Maybe Level
+    , playerName : String
+    , playerScores : List PlayerScore
     , randomSequence : List Int
     , superBadGuyTick : Maybe Int
     , score : ( Int, Int, Int )
@@ -44,6 +48,8 @@ initialModel =
     , gameState = Welcome
     , gridContents = Dict.empty
     , level = Nothing
+    , playerName = ""
+    , playerScores = []
     , randomSequence = []
     , superBadGuyTick = Nothing
     , score = ( 0, 0, 0 )
@@ -84,15 +90,24 @@ type ContentType
 
 type Msg
     = ClickBox Int
+    | ChangeName String
     | CreateClients
     | CreateFraudsters
     | GameEnded
     | InitialiseLevel
     | NoOp
+    | ReceiveScores (Result String (List PlayerScore))
     | Reset
+    | SendScore
     | StartGame
     | StartedTime Time
     | Tick Time
+
+
+type alias PlayerScore =
+    { name : String
+    , score : Int
+    }
 
 
 
@@ -147,6 +162,9 @@ update msg model =
                 _ ->
                     ( model, Cmd.none )
 
+        ChangeName name ->
+            ( { model | playerName = name }, Cmd.none )
+
         CreateClients ->
             ( model, Cmd.none )
 
@@ -154,7 +172,7 @@ update msg model =
             ( model, Cmd.none )
 
         GameEnded ->
-            ( { model | gameState = Results }, Cmd.none )
+            ( { model | gameState = Results }, Ports.requestForScores () )
 
         InitialiseLevel ->
             let
@@ -331,8 +349,25 @@ update msg model =
         NoOp ->
             ( model, Cmd.none )
 
+        ReceiveScores (Ok scores) ->
+            ( { model | playerScores = scores }, Cmd.none )
+
+        ReceiveScores (Err error) ->
+            let
+                _ =
+                    Debug.log "error" error
+            in
+            ( model, Cmd.none )
+
         Reset ->
             ( { model | gameState = Welcome }, Cmd.none )
+
+        SendScore ->
+            let
+                _ =
+                    Debug.log "name" model.playerName
+            in
+            ( model, Ports.storeScore ( model.playerName, translateScore model.score ) )
 
         StartGame ->
             let
@@ -497,7 +532,23 @@ resultsView model =
                 ]
             ]
         , div [ class "playing-time" ] [ text (calculatePlayingTime model.lastTick model.startedTime) ]
+        , div [ class "scoreing-container" ]
+            [ div [] [ text "Submit your score" ]
+            , input [ placeholder "Player name", onInput ChangeName ] []
+            , button [ class "submit-score", onClick SendScore ] [ text "Submit" ]
+            , div [ class "player-scores-label" ] [ text "Player scoreboard" ]
+            , div [ class "player-scores" ] (playerScoreDisplay model.playerScores)
+            ]
         ]
+
+
+playerScoreDisplay : List PlayerScore -> List (Html Msg)
+playerScoreDisplay playerScores =
+    playerScores
+        |> List.map
+            (\{ name, score } ->
+                div [] [ text (name ++ ": " ++ toString score) ]
+            )
 
 
 scoreToPercentage : ( Int, Int, Int ) -> ( Float, Float, Float )
@@ -662,5 +713,21 @@ subscriptions model =
         Playing ->
             Time.every interval Tick
 
+        Results ->
+            Ports.sendScores (decodePlayerScores >> ReceiveScores)
+
         _ ->
             Sub.none
+
+
+decodePlayerScores : Json.Decode.Value -> Result String (List PlayerScore)
+decodePlayerScores =
+    Json.Decode.decodeValue
+        (Json.Decode.list decodePlayerScore)
+
+
+decodePlayerScore : Json.Decode.Decoder PlayerScore
+decodePlayerScore =
+    Json.Decode.map2 PlayerScore
+        (Json.Decode.field "name" Json.Decode.string)
+        (Json.Decode.field "score" Json.Decode.int)

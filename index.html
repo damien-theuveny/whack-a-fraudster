@@ -6,6 +6,21 @@
 <body>
   <script>
     var app = Elm.Main.fullscreen()
+
+    app.ports.storeScore.subscribe(function(score) {
+      var scores = JSON.parse(localStorage.getItem("scores"));
+      if(!scores) {
+        scores = [];
+      }
+      scores.push({name: score[0], score: score[1]});
+      localStorage.setItem("scores", JSON.stringify(scores));
+      app.ports.sendScores.send(scores);
+    });
+
+    app.ports.requestForScores.subscribe(function() {
+      var scores = localStorage.getItem("scores");
+      app.ports.sendScores.send(JSON.parse(scores));
+    });
   </script>
 </body>
 </html>
