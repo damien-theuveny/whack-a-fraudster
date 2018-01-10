@@ -91,11 +91,8 @@ type ContentType
 type Msg
     = ClickBox Int
     | ChangeName String
-    | CreateClients
-    | CreateFraudsters
     | GameEnded
-    | InitialiseLevel
-    | NoOp
+    | ApplyTick
     | ReceiveScores (Result String (List PlayerScore))
     | Reset
     | SendScore
@@ -165,16 +162,10 @@ update msg model =
         ChangeName name ->
             ( { model | playerName = name }, Cmd.none )
 
-        CreateClients ->
-            ( model, Cmd.none )
-
-        CreateFraudsters ->
-            ( model, Cmd.none )
-
         GameEnded ->
             ( { model | gameState = Results }, Ports.requestForScores () )
 
-        InitialiseLevel ->
+        ApplyTick ->
             let
                 isSuperBadGuyTick =
                     case model.superBadGuyTick of
@@ -310,9 +301,6 @@ update msg model =
                                 Fraudster
                             else
                                 Empty
-
-                        _ =
-                            Debug.log "test" ( superFraudster, model.tickCount, model.superBadGuyTick )
                     in
                     List.range 1 (rows * rows)
                         |> List.filter
@@ -346,34 +334,23 @@ update msg model =
             in
             ( { model | gridContents = gridContents }, Cmd.none )
 
-        NoOp ->
-            ( model, Cmd.none )
-
         ReceiveScores (Ok scores) ->
             ( { model | playerScores = scores }, Cmd.none )
 
         ReceiveScores (Err error) ->
-            let
-                _ =
-                    Debug.log "error" error
-            in
             ( model, Cmd.none )
 
         Reset ->
             ( { model | gameState = Welcome }, Cmd.none )
 
         SendScore ->
-            let
-                _ =
-                    Debug.log "name" model.playerName
-            in
             ( model, Ports.storeScore ( model.playerName, translateScore model.score ) )
 
         StartGame ->
             let
                 ( updatedState, updatedCmd ) =
                     update
-                        InitialiseLevel
+                        ApplyTick
                         { model
                             | gameState = Playing
                             , level = Just Level1
@@ -385,34 +362,27 @@ update msg model =
             ( updatedState, Cmd.batch [ updatedCmd, Task.perform StartedTime Time.now ] )
 
         StartedTime time ->
-            let
-                superBadGuyTick =
-                    randomTick (floor time)
-            in
             ( { model
                 | startedTime = Just time
-                , superBadGuyTick = Just superBadGuyTick
+                , superBadGuyTick = Just (randomTick (floor time))
               }
             , Cmd.none
             )
 
         Tick time ->
             let
-                level =
-                    Just (scoreToLevel model.score)
-
                 gameEnded =
-                    case ( level, model.startedTime ) of
-                        ( Just Level1, Just startedTime ) ->
+                    case ( scoreToLevel model.score, model.startedTime ) of
+                        ( Level1, Just startedTime ) ->
                             Time.inSeconds (time - startedTime) > 20
 
-                        ( Just Level2, Just startedTime ) ->
+                        ( Level2, Just startedTime ) ->
                             Time.inSeconds (time - startedTime) > 40
 
-                        ( Just Level3, Just startedTime ) ->
+                        ( Level3, Just startedTime ) ->
                             Time.inSeconds (time - startedTime) > 60
 
-                        ( Just Level4, Just startedTime ) ->
+                        ( Level4, Just startedTime ) ->
                             Time.inSeconds (time - startedTime) > 80
 
                         _ ->
@@ -422,10 +392,10 @@ update msg model =
                 update GameEnded model
             else
                 update
-                    InitialiseLevel
+                    ApplyTick
                     { model
                         | lastTick = Just time
-                        , level = level
+                        , level = Just (scoreToLevel model.score)
                         , tickCount = model.tickCount + 1
                     }
 
@@ -598,24 +568,13 @@ randomSequence generators seed =
     generators
         |> List.indexedMap
             (\index generator ->
-                let
-                    randomSeed =
-                        Random.initialSeed seed
-
-                    ( generatorOutput, _ ) =
-                        Random.step generator (Random.initialSeed ((index + 1) * seed))
-                in
-                generatorOutput
+                Tuple.first <| Random.step generator (Random.initialSeed ((index + 1) * seed))
             )
 
 
 randomTick : Int -> Int
 randomTick seed =
-    let
-        ( generatorOutput, _ ) =
-            Random.step (Random.int 1 12) (Random.initialSeed seed)
-    in
-    generatorOutput
+    Tuple.first <| Random.step (Random.int 1 12) (Random.initialSeed seed)
 
 
 scoreToLevel : ( Int, Int, Int ) -> Level

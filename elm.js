@@ -9103,13 +9103,11 @@ var _user$project$Main$randomSequence = F2(
 			_elm_lang$core$List$indexedMap,
 			F2(
 				function (index, generator) {
-					var _p6 = A2(
-						_elm_lang$core$Random$step,
-						generator,
-						_elm_lang$core$Random$initialSeed((index + 1) * seed));
-					var generatorOutput = _p6._0;
-					var randomSeed = _elm_lang$core$Random$initialSeed(seed);
-					return generatorOutput;
+					return _elm_lang$core$Tuple$first(
+						A2(
+							_elm_lang$core$Random$step,
+							generator,
+							_elm_lang$core$Random$initialSeed((index + 1) * seed)));
 				}),
 			generators);
 	});
@@ -9123,26 +9121,26 @@ var _user$project$Main$createRandomNumberGeneratorList = F2(
 			},
 			A2(_elm_lang$core$List$range, 1, emptyCells));
 	});
-var _user$project$Main$scoreToPercentage = function (_p7) {
-	var _p8 = _p7;
-	var _p10 = _p8._0;
-	var _p9 = _p8._1;
-	var superbadGuyScore = _p8._2 * 250;
-	var customersScore = _p9 * 100;
-	var fraudstersScore = _p10 * 50;
+var _user$project$Main$scoreToPercentage = function (_p6) {
+	var _p7 = _p6;
+	var _p9 = _p7._0;
+	var _p8 = _p7._1;
+	var superbadGuyScore = _p7._2 * 250;
+	var customersScore = _p8 * 100;
+	var fraudstersScore = _p9 * 50;
 	var total = (fraudstersScore + customersScore) + superbadGuyScore;
 	return {
 		ctor: '_Tuple3',
-		_0: (_elm_lang$core$Native_Utils.eq(total, 0) && (_elm_lang$core$Native_Utils.eq(_p10, 0) && _elm_lang$core$Native_Utils.eq(_p9, 0))) ? 0 : ((_elm_lang$core$Basics$toFloat(fraudstersScore) / _elm_lang$core$Basics$toFloat(total)) * 100),
-		_1: (_elm_lang$core$Native_Utils.eq(total, 0) && (_elm_lang$core$Native_Utils.eq(_p10, 0) && _elm_lang$core$Native_Utils.eq(_p9, 0))) ? 0 : ((_elm_lang$core$Basics$toFloat(customersScore) / _elm_lang$core$Basics$toFloat(total)) * 100),
-		_2: (_elm_lang$core$Native_Utils.eq(total, 0) && (_elm_lang$core$Native_Utils.eq(_p10, 0) && _elm_lang$core$Native_Utils.eq(_p9, 0))) ? 0 : ((_elm_lang$core$Basics$toFloat(superbadGuyScore) / _elm_lang$core$Basics$toFloat(total)) * 100)
+		_0: (_elm_lang$core$Native_Utils.eq(total, 0) && (_elm_lang$core$Native_Utils.eq(_p9, 0) && _elm_lang$core$Native_Utils.eq(_p8, 0))) ? 0 : ((_elm_lang$core$Basics$toFloat(fraudstersScore) / _elm_lang$core$Basics$toFloat(total)) * 100),
+		_1: (_elm_lang$core$Native_Utils.eq(total, 0) && (_elm_lang$core$Native_Utils.eq(_p9, 0) && _elm_lang$core$Native_Utils.eq(_p8, 0))) ? 0 : ((_elm_lang$core$Basics$toFloat(customersScore) / _elm_lang$core$Basics$toFloat(total)) * 100),
+		_2: (_elm_lang$core$Native_Utils.eq(total, 0) && (_elm_lang$core$Native_Utils.eq(_p9, 0) && _elm_lang$core$Native_Utils.eq(_p8, 0))) ? 0 : ((_elm_lang$core$Basics$toFloat(superbadGuyScore) / _elm_lang$core$Basics$toFloat(total)) * 100)
 	};
 };
 var _user$project$Main$playerScoreDisplay = function (playerScores) {
 	return A2(
 		_elm_lang$core$List$map,
-		function (_p11) {
-			var _p12 = _p11;
+		function (_p10) {
+			var _p11 = _p10;
 			return A2(
 				_elm_lang$html$Html$div,
 				{ctor: '[]'},
@@ -9151,11 +9149,11 @@ var _user$project$Main$playerScoreDisplay = function (playerScores) {
 					_0: _elm_lang$html$Html$text(
 						A2(
 							_elm_lang$core$Basics_ops['++'],
-							_p12.name,
+							_p11.name,
 							A2(
 								_elm_lang$core$Basics_ops['++'],
 								': ',
-								_elm_lang$core$Basics$toString(_p12.score)))),
+								_elm_lang$core$Basics$toString(_p11.score)))),
 					_1: {ctor: '[]'}
 				});
 		},
@@ -9222,9 +9220,9 @@ var _user$project$Main$Level4 = {ctor: 'Level4'};
 var _user$project$Main$Level3 = {ctor: 'Level3'};
 var _user$project$Main$Level2 = {ctor: 'Level2'};
 var _user$project$Main$Level1 = {ctor: 'Level1'};
-var _user$project$Main$scoreToLevel = function (_p13) {
-	var _p14 = _p13;
-	var translatedScore = (_p14._2 * 250) + (_p14._0 * 50);
+var _user$project$Main$scoreToLevel = function (_p12) {
+	var _p13 = _p12;
+	var translatedScore = (_p13._2 * 250) + (_p13._0 * 50);
 	return (_elm_lang$core$Native_Utils.cmp(translatedScore, 350) < 0) ? _user$project$Main$Level1 : (((_elm_lang$core$Native_Utils.cmp(translatedScore, 350) > -1) && (_elm_lang$core$Native_Utils.cmp(translatedScore, 1000) < 0)) ? _user$project$Main$Level2 : (((_elm_lang$core$Native_Utils.cmp(translatedScore, 1000) > -1) && (_elm_lang$core$Native_Utils.cmp(translatedScore, 2000) < 0)) ? _user$project$Main$Level3 : _user$project$Main$Level4));
 };
 var _user$project$Main$Client = {ctor: 'Client'};
@@ -9288,11 +9286,11 @@ var _user$project$Main$ReceiveScores = function (a) {
 };
 var _user$project$Main$subscriptions = function (model) {
 	var interval = function () {
-		var _p15 = model.level;
+		var _p14 = model.level;
 		_v5_3:
 		do {
-			if (_p15.ctor === 'Just') {
-				switch (_p15._0.ctor) {
+			if (_p14.ctor === 'Just') {
+				switch (_p14._0.ctor) {
 					case 'Level1':
 						return _elm_lang$core$Time$second * 2;
 					case 'Level2':
@@ -9308,40 +9306,39 @@ var _user$project$Main$subscriptions = function (model) {
 		} while(false);
 		return _elm_lang$core$Time$second * 0.75;
 	}();
-	var _p16 = model.gameState;
-	switch (_p16.ctor) {
+	var _p15 = model.gameState;
+	switch (_p15.ctor) {
 		case 'Playing':
 			return A2(_elm_lang$core$Time$every, interval, _user$project$Main$Tick);
 		case 'Results':
 			return _user$project$Ports$sendScores(
-				function (_p17) {
+				function (_p16) {
 					return _user$project$Main$ReceiveScores(
-						_user$project$Main$decodePlayerScores(_p17));
+						_user$project$Main$decodePlayerScores(_p16));
 				});
 		default:
 			return _elm_lang$core$Platform_Sub$none;
 	}
 };
-var _user$project$Main$NoOp = {ctor: 'NoOp'};
-var _user$project$Main$InitialiseLevel = {ctor: 'InitialiseLevel'};
+var _user$project$Main$ApplyTick = {ctor: 'ApplyTick'};
 var _user$project$Main$GameEnded = {ctor: 'GameEnded'};
 var _user$project$Main$update = F2(
 	function (msg, model) {
 		update:
 		while (true) {
-			var _p18 = msg;
-			switch (_p18.ctor) {
+			var _p17 = msg;
+			switch (_p17.ctor) {
 				case 'ClickBox':
-					var _p21 = _p18._0;
-					var _p19 = model.score;
-					var fraudsters = _p19._0;
-					var customers = _p19._1;
-					var superbadGuy = _p19._2;
-					var _p20 = A2(_elm_lang$core$Dict$get, _p21, model.gridContents);
+					var _p20 = _p17._0;
+					var _p18 = model.score;
+					var fraudsters = _p18._0;
+					var customers = _p18._1;
+					var superbadGuy = _p18._2;
+					var _p19 = A2(_elm_lang$core$Dict$get, _p20, model.gridContents);
 					_v8_3:
 					do {
-						if (_p20.ctor === 'Just') {
-							switch (_p20._0.ctor) {
+						if (_p19.ctor === 'Just') {
+							switch (_p19._0.ctor) {
 								case 'SuperFraudster':
 									return {
 										ctor: '_Tuple2',
@@ -9351,7 +9348,7 @@ var _user$project$Main$update = F2(
 												score: {ctor: '_Tuple3', _0: fraudsters, _1: customers, _2: superbadGuy + 1},
 												gridContents: A3(
 													_elm_lang$core$Dict$update,
-													_p21,
+													_p20,
 													_elm_lang$core$Maybe$map(
 														function (previousContentTypes) {
 															return _user$project$Main$Empty;
@@ -9369,7 +9366,7 @@ var _user$project$Main$update = F2(
 												score: {ctor: '_Tuple3', _0: fraudsters + 1, _1: customers, _2: superbadGuy},
 												gridContents: A3(
 													_elm_lang$core$Dict$update,
-													_p21,
+													_p20,
 													_elm_lang$core$Maybe$map(
 														function (previousContentTypes) {
 															return _user$project$Main$Empty;
@@ -9387,7 +9384,7 @@ var _user$project$Main$update = F2(
 												score: {ctor: '_Tuple3', _0: fraudsters, _1: customers + 1, _2: superbadGuy},
 												gridContents: A3(
 													_elm_lang$core$Dict$update,
-													_p21,
+													_p20,
 													_elm_lang$core$Maybe$map(
 														function (previousContentTypes) {
 															return _user$project$Main$Empty;
@@ -9409,13 +9406,9 @@ var _user$project$Main$update = F2(
 						ctor: '_Tuple2',
 						_0: _elm_lang$core$Native_Utils.update(
 							model,
-							{playerName: _p18._0}),
+							{playerName: _p17._0}),
 						_1: _elm_lang$core$Platform_Cmd$none
 					};
-				case 'CreateClients':
-					return {ctor: '_Tuple2', _0: model, _1: _elm_lang$core$Platform_Cmd$none};
-				case 'CreateFraudsters':
-					return {ctor: '_Tuple2', _0: model, _1: _elm_lang$core$Platform_Cmd$none};
 				case 'GameEnded':
 					return {
 						ctor: '_Tuple2',
@@ -9425,11 +9418,11 @@ var _user$project$Main$update = F2(
 						_1: _user$project$Ports$requestForScores(
 							{ctor: '_Tuple0'})
 					};
-				case 'InitialiseLevel':
-					var _p22 = function () {
-						var _p23 = model.level;
-						if (_p23.ctor === 'Just') {
-							switch (_p23._0.ctor) {
+				case 'ApplyTick':
+					var _p21 = function () {
+						var _p22 = model.level;
+						if (_p22.ctor === 'Just') {
+							switch (_p22._0.ctor) {
 								case 'Level1':
 									return {ctor: '_Tuple3', _0: 2, _1: 1, _2: 3};
 								case 'Level2':
@@ -9443,9 +9436,9 @@ var _user$project$Main$update = F2(
 							return {ctor: '_Tuple3', _0: 0, _1: 0, _2: 0};
 						}
 					}();
-					var numberOfClients = _p22._0;
-					var numberOfFraudsters = _p22._1;
-					var rows = _p22._2;
+					var numberOfClients = _p21._0;
+					var numberOfFraudsters = _p21._1;
+					var rows = _p21._2;
 					var nextAvailibleNumber = F3(
 						function (currentNumber, centre, list) {
 							var filtered = A2(
@@ -9470,9 +9463,9 @@ var _user$project$Main$update = F2(
 											centre,
 											A2(_elm_lang$core$List$take, index, list));
 										var correctedRandomNumber = function () {
-											var _p24 = A3(nextAvailibleNumber, randomNumber, centre, listSoFar);
-											if (_p24.ctor === 'Just') {
-												return _p24._0;
+											var _p23 = A3(nextAvailibleNumber, randomNumber, centre, listSoFar);
+											if (_p23.ctor === 'Just') {
+												return _p23._0;
 											} else {
 												return randomNumber;
 											}
@@ -9489,9 +9482,9 @@ var _user$project$Main$update = F2(
 									list));
 						});
 					var isSuperBadGuyTick = function () {
-						var _p25 = model.superBadGuyTick;
-						if (_p25.ctor === 'Just') {
-							return _elm_lang$core$Native_Utils.eq(_p25._0, model.tickCount);
+						var _p24 = model.superBadGuyTick;
+						if (_p24.ctor === 'Just') {
+							return _elm_lang$core$Native_Utils.eq(_p24._0, model.tickCount);
 						} else {
 							return false;
 						}
@@ -9499,27 +9492,27 @@ var _user$project$Main$update = F2(
 					var emptySpaces = isSuperBadGuyTick ? ((rows * rows) - 2) : ((rows * rows) - 1);
 					var generators = A2(_user$project$Main$createRandomNumberGeneratorList, emptySpaces, numberOfClients + numberOfFraudsters);
 					var randomNumbers = function () {
-						var _p26 = {ctor: '_Tuple2', _0: model.lastTick, _1: model.startedTime};
+						var _p25 = {ctor: '_Tuple2', _0: model.lastTick, _1: model.startedTime};
 						_v12_2:
 						do {
-							if (_p26.ctor === '_Tuple2') {
-								if (_p26._0.ctor === 'Just') {
+							if (_p25.ctor === '_Tuple2') {
+								if (_p25._0.ctor === 'Just') {
 									return A2(
 										correctNumbers,
 										((_elm_lang$core$Basics$toFloat(rows) * _elm_lang$core$Basics$toFloat(rows)) + 1) / 2,
 										A2(
 											_user$project$Main$randomSequence,
 											generators,
-											_elm_lang$core$Basics$floor(_p26._0._0)));
+											_elm_lang$core$Basics$floor(_p25._0._0)));
 								} else {
-									if (_p26._1.ctor === 'Just') {
+									if (_p25._1.ctor === 'Just') {
 										return A2(
 											correctNumbers,
 											((_elm_lang$core$Basics$toFloat(rows) * _elm_lang$core$Basics$toFloat(rows)) + 1) / 2,
 											A2(
 												_user$project$Main$randomSequence,
 												generators,
-												_elm_lang$core$Basics$floor(_p26._1._0)));
+												_elm_lang$core$Basics$floor(_p25._1._0)));
 									} else {
 										break _v12_2;
 									}
@@ -9534,12 +9527,12 @@ var _user$project$Main$update = F2(
 					var fraudsterRandomList = A2(_elm_lang$core$List$drop, numberOfClients, randomNumbers);
 					var superBadGuyGenerator = isSuperBadGuyTick ? A2(_user$project$Main$createRandomNumberGeneratorList, (rows * rows) - 1, 1) : {ctor: '[]'};
 					var superBadGuyRandomNumber = function () {
-						var _p27 = model.lastTick;
-						if (_p27.ctor === 'Just') {
+						var _p26 = model.lastTick;
+						if (_p26.ctor === 'Just') {
 							return A2(
 								_user$project$Main$randomSequence,
 								superBadGuyGenerator,
-								_elm_lang$core$Basics$floor(_p27._0));
+								_elm_lang$core$Basics$floor(_p26._0));
 						} else {
 							return {ctor: '[]'};
 						}
@@ -9551,24 +9544,20 @@ var _user$project$Main$update = F2(
 							});
 						var superFraudsterHere = F2(
 							function (index, superFraudsterKeyValue) {
-								var _p28 = superFraudsterKeyValue;
-								if (_p28.ctor === 'Just') {
-									return _elm_lang$core$Native_Utils.eq(_p28._0._0, index);
+								var _p27 = superFraudsterKeyValue;
+								if (_p27.ctor === 'Just') {
+									return _elm_lang$core$Native_Utils.eq(_p27._0._0, index);
 								} else {
 									return false;
 								}
 							});
 						var superFraudster = A2(
 							_elm_lang$core$List$filter,
-							function (_p29) {
-								var _p30 = _p29;
-								return _elm_lang$core$Native_Utils.eq(_p30._1, _user$project$Main$SuperFraudster);
+							function (_p28) {
+								var _p29 = _p28;
+								return _elm_lang$core$Native_Utils.eq(_p29._1, _user$project$Main$SuperFraudster);
 							},
 							_elm_lang$core$Dict$toList(model.gridContents));
-						var _p31 = A2(
-							_elm_lang$core$Debug$log,
-							'test',
-							{ctor: '_Tuple3', _0: superFraudster, _1: model.tickCount, _2: model.superBadGuyTick});
 						return _elm_lang$core$Dict$fromList(
 							A2(
 								_elm_lang$core$List$map,
@@ -9578,9 +9567,9 @@ var _user$project$Main$update = F2(
 											superFraudsterHere,
 											index,
 											_elm_lang$core$List$head(superFraudster))) {
-											var _p32 = model.superBadGuyTick;
-											if (_p32.ctor === 'Just') {
-												return (_elm_lang$core$Native_Utils.cmp(_p32._0 + 3, model.tickCount) > 0) ? _user$project$Main$SuperFraudster : A4(pickCellType, index, superBadGuyRandomNumber, clientRandomList, fraudsterRandomList);
+											var _p30 = model.superBadGuyTick;
+											if (_p30.ctor === 'Just') {
+												return (_elm_lang$core$Native_Utils.cmp(_p30._0 + 3, model.tickCount) > 0) ? _user$project$Main$SuperFraudster : A4(pickCellType, index, superBadGuyRandomNumber, clientRandomList, fraudsterRandomList);
 											} else {
 												return A4(pickCellType, index, superBadGuyRandomNumber, clientRandomList, fraudsterRandomList);
 											}
@@ -9607,19 +9596,16 @@ var _user$project$Main$update = F2(
 							{gridContents: gridContents}),
 						_1: _elm_lang$core$Platform_Cmd$none
 					};
-				case 'NoOp':
-					return {ctor: '_Tuple2', _0: model, _1: _elm_lang$core$Platform_Cmd$none};
 				case 'ReceiveScores':
-					if (_p18._0.ctor === 'Ok') {
+					if (_p17._0.ctor === 'Ok') {
 						return {
 							ctor: '_Tuple2',
 							_0: _elm_lang$core$Native_Utils.update(
 								model,
-								{playerScores: _p18._0._0}),
+								{playerScores: _p17._0._0}),
 							_1: _elm_lang$core$Platform_Cmd$none
 						};
 					} else {
-						var _p33 = A2(_elm_lang$core$Debug$log, 'error', _p18._0._0);
 						return {ctor: '_Tuple2', _0: model, _1: _elm_lang$core$Platform_Cmd$none};
 					}
 				case 'Reset':
@@ -9631,7 +9617,6 @@ var _user$project$Main$update = F2(
 						_1: _elm_lang$core$Platform_Cmd$none
 					};
 				case 'SendScore':
-					var _p34 = A2(_elm_lang$core$Debug$log, 'name', model.playerName);
 					return {
 						ctor: '_Tuple2',
 						_0: model,
@@ -9643,9 +9628,9 @@ var _user$project$Main$update = F2(
 							})
 					};
 				case 'StartGame':
-					var _p35 = A2(
+					var _p31 = A2(
 						_user$project$Main$update,
-						_user$project$Main$InitialiseLevel,
+						_user$project$Main$ApplyTick,
 						_elm_lang$core$Native_Utils.update(
 							model,
 							{
@@ -9655,8 +9640,8 @@ var _user$project$Main$update = F2(
 								tickCount: 0,
 								superBadGuyTick: _elm_lang$core$Maybe$Nothing
 							}));
-					var updatedState = _p35._0;
-					var updatedCmd = _p35._1;
+					var updatedState = _p31._0;
+					var updatedCmd = _p31._1;
 					return {
 						ctor: '_Tuple2',
 						_0: updatedState,
@@ -9672,42 +9657,44 @@ var _user$project$Main$update = F2(
 							})
 					};
 				case 'StartedTime':
-					var _p36 = _p18._0;
-					var superBadGuyTick = _user$project$Main$randomTick(
-						_elm_lang$core$Basics$floor(_p36));
+					var _p32 = _p17._0;
 					return {
 						ctor: '_Tuple2',
 						_0: _elm_lang$core$Native_Utils.update(
 							model,
 							{
-								startedTime: _elm_lang$core$Maybe$Just(_p36),
-								superBadGuyTick: _elm_lang$core$Maybe$Just(superBadGuyTick)
+								startedTime: _elm_lang$core$Maybe$Just(_p32),
+								superBadGuyTick: _elm_lang$core$Maybe$Just(
+									_user$project$Main$randomTick(
+										_elm_lang$core$Basics$floor(_p32)))
 							}),
 						_1: _elm_lang$core$Platform_Cmd$none
 					};
 				default:
-					var _p38 = _p18._0;
-					var level = _elm_lang$core$Maybe$Just(
-						_user$project$Main$scoreToLevel(model.score));
+					var _p34 = _p17._0;
 					var gameEnded = function () {
-						var _p37 = {ctor: '_Tuple2', _0: level, _1: model.startedTime};
-						if (((_p37.ctor === '_Tuple2') && (_p37._0.ctor === 'Just')) && (_p37._1.ctor === 'Just')) {
-							switch (_p37._0._0.ctor) {
+						var _p33 = {
+							ctor: '_Tuple2',
+							_0: _user$project$Main$scoreToLevel(model.score),
+							_1: model.startedTime
+						};
+						if ((_p33.ctor === '_Tuple2') && (_p33._1.ctor === 'Just')) {
+							switch (_p33._0.ctor) {
 								case 'Level1':
 									return _elm_lang$core$Native_Utils.cmp(
-										_elm_lang$core$Time$inSeconds(_p38 - _p37._1._0),
+										_elm_lang$core$Time$inSeconds(_p34 - _p33._1._0),
 										20) > 0;
 								case 'Level2':
 									return _elm_lang$core$Native_Utils.cmp(
-										_elm_lang$core$Time$inSeconds(_p38 - _p37._1._0),
+										_elm_lang$core$Time$inSeconds(_p34 - _p33._1._0),
 										40) > 0;
 								case 'Level3':
 									return _elm_lang$core$Native_Utils.cmp(
-										_elm_lang$core$Time$inSeconds(_p38 - _p37._1._0),
+										_elm_lang$core$Time$inSeconds(_p34 - _p33._1._0),
 										60) > 0;
 								default:
 									return _elm_lang$core$Native_Utils.cmp(
-										_elm_lang$core$Time$inSeconds(_p38 - _p37._1._0),
+										_elm_lang$core$Time$inSeconds(_p34 - _p33._1._0),
 										80) > 0;
 							}
 						} else {
@@ -9721,12 +9708,13 @@ var _user$project$Main$update = F2(
 						model = _v19;
 						continue update;
 					} else {
-						var _v20 = _user$project$Main$InitialiseLevel,
+						var _v20 = _user$project$Main$ApplyTick,
 							_v21 = _elm_lang$core$Native_Utils.update(
 							model,
 							{
-								lastTick: _elm_lang$core$Maybe$Just(_p38),
-								level: level,
+								lastTick: _elm_lang$core$Maybe$Just(_p34),
+								level: _elm_lang$core$Maybe$Just(
+									_user$project$Main$scoreToLevel(model.score)),
 								tickCount: model.tickCount + 1
 							});
 						msg = _v20;
@@ -9736,20 +9724,18 @@ var _user$project$Main$update = F2(
 			}
 		}
 	});
-var _user$project$Main$CreateFraudsters = {ctor: 'CreateFraudsters'};
-var _user$project$Main$CreateClients = {ctor: 'CreateClients'};
 var _user$project$Main$ChangeName = function (a) {
 	return {ctor: 'ChangeName', _0: a};
 };
 var _user$project$Main$resultsView = function (model) {
-	var _p39 = model.score;
-	var fraudsters = _p39._0;
-	var customers = _p39._1;
-	var superbadGuy = _p39._2;
-	var _p40 = _user$project$Main$scoreToPercentage(model.score);
-	var fraudstersPercentage = _p40._0;
-	var customersPercentage = _p40._1;
-	var superbadGuyPercentage = _p40._2;
+	var _p35 = model.score;
+	var fraudsters = _p35._0;
+	var customers = _p35._1;
+	var superbadGuy = _p35._2;
+	var _p36 = _user$project$Main$scoreToPercentage(model.score);
+	var fraudstersPercentage = _p36._0;
+	var customersPercentage = _p36._1;
+	var superbadGuyPercentage = _p36._2;
 	return A2(
 		_elm_lang$html$Html$div,
 		{ctor: '[]'},
@@ -10142,11 +10128,11 @@ var _user$project$Main$makeGrid = F2(
 			_elm_lang$core$List$map,
 			function (index) {
 				var contentClass = function () {
-					var _p41 = A2(_elm_lang$core$Dict$get, index, gridContents);
+					var _p37 = A2(_elm_lang$core$Dict$get, index, gridContents);
 					_v22_3:
 					do {
-						if (_p41.ctor === 'Just') {
-							switch (_p41._0.ctor) {
+						if (_p37.ctor === 'Just') {
+							switch (_p37._0.ctor) {
 								case 'Client':
 									return {
 										ctor: '::',
@@ -10219,10 +10205,10 @@ var _user$project$Main$makeGrid = F2(
 			A2(_elm_lang$core$List$range, 1, rows * rows));
 	});
 var _user$project$Main$inGameView = function (model) {
-	var _p42 = function () {
-		var _p43 = model.level;
-		if (_p43.ctor === 'Just') {
-			switch (_p43._0.ctor) {
+	var _p38 = function () {
+		var _p39 = model.level;
+		if (_p39.ctor === 'Just') {
+			switch (_p39._0.ctor) {
 				case 'Level1':
 					return {
 						ctor: '_Tuple2',
@@ -10272,8 +10258,8 @@ var _user$project$Main$inGameView = function (model) {
 			};
 		}
 	}();
-	var levelClass = _p42._0;
-	var grid = _p42._1;
+	var levelClass = _p38._0;
+	var grid = _p38._1;
 	return A2(
 		_elm_lang$html$Html$div,
 		{ctor: '[]'},
@@ -10385,8 +10371,8 @@ var _user$project$Main$inGameView = function (model) {
 		});
 };
 var _user$project$Main$view = function (model) {
-	var _p44 = model.gameState;
-	switch (_p44.ctor) {
+	var _p40 = model.gameState;
+	switch (_p40.ctor) {
 		case 'Welcome':
 			return _user$project$Main$welcomeView;
 		case 'Playing':
