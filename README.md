@@ -15,19 +15,19 @@ Feel free to extend the game in anyway you like, if nothing comes to mind then w
 
 **Adding an entry to the _ContentType_**
 
-'''
+```elm
 type ContentType
     = Empty
     | Fraudster
     | SuperFraudster
     | Client
-'''
+```
 
 **Handle clicking the new content type**
 
 We'll need to add a new entry in the case statement as was done for the *SuperFraudster*. There we can either update the score accordingly to how we want this to influence the game or we can call update with the *GameEnded* function to have a 'Game Over' style action.
 
-'''
+```elm
 ClickBox index ->
     let
         ( fraudsters, customers, superbadGuy ) =
@@ -45,11 +45,11 @@ ClickBox index ->
               }
             , Cmd.none
             )
-'''
+```
 
 **Add to the model and initialise in _StartGame_**
 
-'''
+```elm
 StartGame ->
     let
         ( updatedState, updatedCmd ) =
@@ -64,12 +64,12 @@ StartGame ->
                 }
     in
     ( updatedState, Cmd.batch [ updatedCmd, Task.perform StartedTime Time.now ] )
-'''
+```
 
 
 **Re-use or create a new function to randomly allocate when the super customer appears**
 
-'''
+```elm
 StartedTime time ->
     ( { model
         | startedTime = Just time
@@ -77,4 +77,4 @@ StartedTime time ->
       }
     , Cmd.none
     )
-'''
+```
