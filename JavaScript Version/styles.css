@@ -1,0 +1,355 @@
+html{
+    position: relative;
+    text-align: center;
+    overflow: hidden;
+}
+
+body{
+    margin: 0;
+    padding: 0;
+    display: table;
+    height: 100%;
+    width: 100%;
+    overflow: hidden;
+}
+
+.p-input{
+    margin-top: 20px;
+    margin-bottom: 20px;
+}
+
+.gridContainer{
+    position: absolute;
+    display: none;
+    width: 150px;
+    top: calc(50% - 75px);
+    left: calc(50% - 75px);
+    vertical-align: middle;
+    z-index: 2;
+}
+
+.close{
+    position: absolute;
+    top: 25px;
+    right: 25px;
+    display: none;
+    z-index: 2;
+    font-family: "HelveticaNeue-Light", "Helvetica Neue Light", "Helvetica Neue", Helvetica, Arial, "Lucida Grande", sans-serif; 
+    text-align: center;
+    color: rgba(255,255,255,1);
+}
+
+.close:hover{
+    cursor: pointer;
+}
+
+.close div{
+    font-size: 36px;
+}
+
+.close .exit{
+    margin-top: -5px;
+    font-size: 12px;
+    font-weight: 100;
+}
+
+
+.score{
+    position: absolute;
+    color: #fff;
+    text-align: center;
+    height: 20px;
+    margin: 25px 0 0;
+    display: none;
+    font-family: "HelveticaNeue-Light", "Helvetica Neue Light", "Helvetica Neue", Helvetica, Arial, "Lucida Grande", sans-serif; 
+    font-size: 40px;
+    z-index: 2;
+    width: 100%;
+}
+
+.instructions{
+    position: absolute;
+    text-align: center;
+    font-family:  "HelveticaNeue-Light", "Helvetica Neue Light", "Helvetica Neue", Helvetica, Arial, "Lucida Grande", sans-serif; 
+    width: 100%;
+    z-index: 2;
+    color: #fff;
+    font-weight: 300;
+}
+
+.instructions .background{
+    max-width: 80%;
+    margin: 0 auto;
+    margin-bottom: 50px;
+}
+
+.instructions .icon{
+    width: 50px;
+    height: 50px;
+    background-size: cover;
+    float: left;
+    margin: 0 auto;
+    border: #000 1px solid;
+    box-sizing: border-box;
+}
+
+.col{
+    width: 50%;
+    float: left;
+    text-align: center;
+    box-sizing: border-box;
+    padding: 0 20px;
+}
+
+.button{
+    position: relative;
+    text-align: center;
+    margin: 0 auto;
+    width: 200px;
+    padding: 15px 0px;
+    color: #fff;
+    font-family:"HelveticaNeue-Light", "Helvetica Neue Light", "Helvetica Neue", Helvetica, Arial, "Lucida Grande", sans-serif; 
+    display: block;
+    background-color: #56B6CD;
+    z-index: 2;
+}
+
+.button:hover{
+    cursor: pointer;
+}
+
+.startButton{
+    position: absolute;
+    left: calc(50% - 100px);
+    bottom: 50px;
+    height: 18px;
+}
+
+
+.chars{
+    position: absolute;
+    height: 100%;
+    width: 100%;
+    background-color: #0084a9;
+    overflow: hidden;
+}
+
+.chars .rightChars{
+    position: absolute;
+    right:0;
+    width: 50%;
+    height: 100%;
+    display: none;
+}
+
+.leftChars{
+    position: absolute;
+    left:0;
+    width: 50%;
+    height: 100%;
+    display: none;
+}
+
+.leftChars .largeSuperBadGuy{
+    position: absolute;
+    left: -100%;
+    top: 0;
+    height: 60%;
+    width: 100%;
+    background-image: url(images/LargeSuperBadGuy.png);
+    background-size: contain;
+    background-repeat: no-repeat;
+}
+
+.leftChars .largeBadGuy{
+    position: absolute;
+    left: -100%;
+    top: 28%;
+    height: 60%;
+    width: 100%;
+    background-image: url(images/largeBadGuy.png);
+    background-size: contain;
+    background-repeat: no-repeat;
+}
+
+.rightChars .customer1{
+    position: absolute;
+    right: -100%;
+    top: 20%;
+    height: 60%;
+    width: 100%;
+    background-image: url(images/largeCustomer1.png);
+    background-size: contain;
+    background-repeat: no-repeat;
+}
+
+.rightChars .customer2{
+    position: absolute;
+    right: -100%;
+    bottom: 10%;
+    height: 60%;
+    width: 100%;
+    background-image: url(images/largeCustomer2.png);
+    background-size: contain;
+    background-repeat: no-repeat;
+}
+
+.finalScoreContainer{
+    position: absolute;
+    display: none;
+    top: 125px;
+    width: 100%;
+    text-align: center;
+    font-family: "HelveticaNeue-Light", "Helvetica Neue Light", "Helvetica Neue", Helvetica, Arial, "Lucida Grande", sans-serif; 
+    z-index: 2;
+    color: #fff;
+}
+
+.finalScoreContainer div{
+    font-size: 20px;
+}
+
+.finalScoreContainer .bigText{
+    font-size: 22px;
+    padding: 0 40px;
+}
+
+.finalScore{
+    position: relative;
+    height: 150px;
+    margin-bottom: 20px;
+}
+
+.finalScore .chart{
+    position: absolute;
+    width: 80%;
+    height: 100%;
+    left: 10%;
+    overflow: hidden;
+}
+
+.finalScore .chart .block{
+    height: 25px;
+    position: absolute;
+}
+
+.finalScore .chart .divider{
+    position: absolute;
+    left: 50%;
+    top: 0;
+    height: 85px;
+    width: 1px;
+    background-color: rgba(255,255,255,0.6);
+}
+
+.finalScore .chart .badGuyBlock{
+    top: 0px;
+    left:calc(50% + 5px);
+    text-align: center;
+    box-sizing: border-box;
+    padding-top: 10px;
+    overflow: hidden;
+    background-color: #02536b;
+}
+
+.finalScore .chart .badGuysLabel{
+    top: 0px;
+    position: absolute;
+    text-align: right;
+    right: calc(50% + 10px);
+}
+
+.finalScore .chart .customerBlock{
+    top:30px;
+    right: calc(50% + 5px);
+    background-color:#56b6cc;
+}
+
+.finalScore .chart .customerLabel{
+    top: 30px;
+    position: absolute;
+    text-align: right;
+    left: calc(50% + 10px);
+}
+
+.finalScore .chart .superBadGuyBlock{
+    top:60px; 
+    left: calc(50% + 5px);
+    background-color: #02536b;
+}
+
+.finalScore .chart .superBadGuysLabel{
+    top: 60px;
+    position: absolute;
+    text-align: right;
+    right: calc(50% + 10px);
+}
+
+.finalScoreCopy{
+    margin-top: 40px;
+}
+
+
+.gridBox{
+    float: left;
+    height: 50px;
+    width: 50px;
+    background-color: #56B6CD;
+    box-sizing: border-box;
+    border: #000 1px solid;
+    background-size: cover;
+    z-index: 2;
+}
+
+
+.gridBox:nth-of-type(odd){
+    background-color: #D2ECF2;
+}
+
+.gridLogo{
+    background-color: #fff !important;
+    background-image: url(images/fs-logo.png);
+}
+
+.badGuy{
+    background-image: url(images/badguy1.png);
+}
+
+.badGuy.image-two{
+    background-image: url(images/badguy1.png);
+}
+
+.superBadGuy{
+    background-image: url(images/badguy2.png);
+}
+
+.customer{
+    background-image: url(images/customer1.png);
+}
+
+.customer.image-two{
+    background-image: url(images/customer2.png);
+}
+
+
+.oval{
+    position: absolute;
+    width:300%;
+    height: 100%;
+    left: -100%;
+    bottom: -85%;
+    background-color: #56b6cd;
+    border-radius: 60%;
+}
+
+.largeLogo{
+    position: absolute;
+    left: 0;
+    bottom: 0;
+    height: 90px;
+    width: 351px;
+    background-image: url(images/LogoLarge.png);
+    background-size: contain;
+    z-index: 2;
+}
+

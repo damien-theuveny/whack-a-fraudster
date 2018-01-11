@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title>Whack-a-fraudster</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <script   src="https://code.jquery.com/jquery-2.2.3.min.js"   integrity="sha256-a23g1Nt4dtEYOj7bR+vTu7+T8VP13humZFBJNIYoEJo="   crossorigin="anonymous"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/1.18.4/plugins/CSSPlugin.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/1.18.4/easing/EasePack.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/1.18.4/TweenLite.min.js"></script>
+    <script src="script.js"></script>
+    <link rel="stylesheet" href="styles.css">
+</head>
+ 
+<body>
+    <div class="close">
+        <div>X</div>
+        <div class="exit">Reset</div>
+    </div>
+    <div class="score"></div>
+    <div class="gridContainer"></div>
+    <div class="finalScoreContainer">
+        <div class="finalScore">
+            <div class="chart">
+                <div class="divider"></div>
+                <div class="badGuysLabel">Bad Guys</div><div class="badGuyBlock block"></div>
+                <div class="customerBlock block"></div><div class="customerLabel">Customers</div>
+                <div class="superBadGuysLabel">Super Bad Guys</div><div class="superBadGuyBlock block"></div>
+            </div>
+        </div>
+        <div class="finalScoreHeader bigText"></div>
+        <div class="finalScoreCopy bigText">Why not ask us how our machine learning system can help you catch more fraud?</div>
+    </div>
+    <div class="instructions">
+        <h1>Welcome to Whack-a-Fraudster</h1>
+        <h2>How to Play</h2>
+        <p class="background">Catch the fraudsters whilst making sure your genuine customers get through!</p>
+        <div class="col">
+            <h2>Score Points</h2>
+            <p>By clicking on the fraudsters</p>
+            <div class="icon badGuy"></div>
+            <div class="icon superBadGuy"></div>
+        </div>
+        <div class="col">
+            <h2>Lose Points</h2>
+            <p>Make sure not to click on your customers</p>
+            <div class="icon customer"></div>
+            <div class="icon customer image-two"></div>
+        </div>
+    </div>
+    <div class="button startButton">Start Game</div>
+    <div class="chars">
+        <div class="leftChars">
+            <div class="largeSuperBadGuy"></div>
+            <div class="largeBadGuy"></div>
+        </div>
+        <div class="rightChars">
+            <div class="customer1"></div>
+            <div class="customer2"></div>
+        </div>
+    </div>
+    <div class="largeLogo"></div>
+    <div class="oval"></div>
+</body>
+</html>
