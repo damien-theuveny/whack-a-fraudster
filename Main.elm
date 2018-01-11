@@ -175,6 +175,21 @@ update msg model =
                         Nothing ->
                             False
 
+                superBadGuyRemains =
+                    case model.superBadGuyTick of
+                        Just superBadGuyTick ->
+                            if (superBadGuyTick + 2) >= model.tickCount then
+                                Dict.toList model.gridContents
+                                    |> List.filter
+                                        (\( index, cellType ) ->
+                                            cellType == SuperFraudster
+                                        )
+                            else
+                                []
+
+                        Nothing ->
+                            []
+
                 ( numberOfClients, numberOfFraudsters, rows ) =
                     case model.level of
                         Just Level1 ->
@@ -193,143 +208,38 @@ update msg model =
                             ( 0, 0, 0 )
 
                 emptySpaces =
-                    if isSuperBadGuyTick then
-                        (rows * rows) - 2
-                    else
+                    if List.isEmpty superBadGuyRemains then
                         (rows * rows) - 1
-
-                superBadGuyGenerator =
-                    if isSuperBadGuyTick then
-                        createRandomNumberGeneratorList ((rows * rows) - 1) 1
                     else
-                        []
+                        (rows * rows) - 2
 
-                superBadGuyRandomNumber =
-                    case model.lastTick of
-                        Just time ->
-                            randomSequence superBadGuyGenerator (floor time)
+                cellContentList =
+                    createContentList emptySpaces numberOfFraudsters numberOfClients isSuperBadGuyTick
 
-                        Nothing ->
-                            []
-
-                generators =
-                    createRandomNumberGeneratorList emptySpaces (numberOfClients + numberOfFraudsters)
-
-                randomNumbers =
-                    -- correctNumbers ((toFloat rows * toFloat rows + 1) / 2) [ 1, 1, 1 ]
+                randomNumberList =
                     case ( model.lastTick, model.startedTime ) of
                         ( Just time, _ ) ->
-                            randomSequence generators (floor time)
-                                |> correctNumbers ((toFloat rows * toFloat rows + 1) / 2)
+                            randomList (floor time) emptySpaces
 
                         ( _, Just time ) ->
-                            randomSequence generators (floor time)
-                                |> correctNumbers ((toFloat rows * toFloat rows + 1) / 2)
+                            randomList (floor time) emptySpaces
 
                         _ ->
                             []
 
-                nextAvailibleNumber currentNumber centre list =
-                    let
-                        filtered =
-                            List.range 1 (rows * rows)
-                                |> List.filter
-                                    (\item ->
-                                        (toFloat item /= centre) && not (List.member item list)
-                                    )
-                    in
-                    List.drop (currentNumber - 1) filtered
-                        |> List.head
-
-                correctNumbers centre list =
-                    list
-                        |> List.map
-                            (\item ->
-                                if toFloat item >= centre then
-                                    item + 1
-                                else
-                                    item
-                            )
+                joinedLists =
+                    List.map2 (\content randomNumber -> ( content, randomNumber )) cellContentList randomNumberList
+                        |> List.sortBy (\( _, randomNumber ) -> randomNumber)
                         |> List.indexedMap
-                            (\index randomNumber ->
-                                let
-                                    listSoFar =
-                                        List.take index list
-                                            |> correctNumbers centre
-
-                                    correctedRandomNumber =
-                                        case nextAvailibleNumber randomNumber centre listSoFar of
-                                            Just number ->
-                                                number
-
-                                            _ ->
-                                                randomNumber
-                                in
-                                correctedRandomNumber
+                            (\index ( cellType, _ ) ->
+                                if index >= floor ((toFloat rows * toFloat rows) / 2) then
+                                    ( index + 1, cellType )
+                                else
+                                    ( index, cellType )
                             )
-
-                clientRandomList =
-                    randomNumbers
-                        |> List.take numberOfClients
-
-                fraudsterRandomList =
-                    randomNumbers
-                        |> List.drop numberOfClients
 
                 gridContents =
-                    let
-                        superFraudster =
-                            model.gridContents
-                                |> Dict.toList
-                                |> List.filter
-                                    (\( index, value ) -> value == SuperFraudster)
-
-                        superFraudsterHere index superFraudsterKeyValue =
-                            case superFraudsterKeyValue of
-                                Just ( superFraudsterKey, superFraudsterValue ) ->
-                                    superFraudsterKey == index
-
-                                Nothing ->
-                                    False
-
-                        pickCellType index superBadGuyRandomNumber clientRandomList fraudsterRandomList =
-                            if List.member index superBadGuyRandomNumber then
-                                SuperFraudster
-                            else if List.member index clientRandomList then
-                                Client
-                            else if List.member index fraudsterRandomList then
-                                Fraudster
-                            else
-                                Empty
-                    in
-                    List.range 1 (rows * rows)
-                        |> List.filter
-                            (\index ->
-                                let
-                                    floatRows =
-                                        toFloat rows
-                                in
-                                not (toFloat index == ((floatRows * floatRows + 1) / 2))
-                            )
-                        |> List.map
-                            (\index ->
-                                let
-                                    cellType =
-                                        if not (List.isEmpty superFraudster) && superFraudsterHere index (List.head superFraudster) then
-                                            case model.superBadGuyTick of
-                                                Just superBadGuyTick ->
-                                                    if (superBadGuyTick + 3) > model.tickCount then
-                                                        SuperFraudster
-                                                    else
-                                                        pickCellType index superBadGuyRandomNumber clientRandomList fraudsterRandomList
-
-                                                Nothing ->
-                                                    pickCellType index superBadGuyRandomNumber clientRandomList fraudsterRandomList
-                                        else
-                                            pickCellType index superBadGuyRandomNumber clientRandomList fraudsterRandomList
-                                in
-                                ( index, cellType )
-                            )
+                    adjustListsWithSuperBadGuy rows joinedLists superBadGuyRemains
                         |> Dict.fromList
             in
             ( { model | gridContents = gridContents }, Cmd.none )
@@ -398,6 +308,69 @@ update msg model =
                         , level = Just (scoreToLevel model.score)
                         , tickCount = model.tickCount + 1
                     }
+
+
+adjustListsWithSuperBadGuy : Int -> List ( Int, ContentType ) -> List ( Int, ContentType ) -> List ( Int, ContentType )
+adjustListsWithSuperBadGuy rows joinedLists superBadGuyRemains =
+    case List.head superBadGuyRemains of
+        Just ( index, _ ) ->
+            let
+                adjustedIndex =
+                    if index >= floor ((toFloat rows * toFloat rows) / 2) then
+                        index - 1
+                    else
+                        index
+
+                beforeSuperBadGuy =
+                    List.take adjustedIndex joinedLists
+
+                afterSuperBadGuy =
+                    List.drop adjustedIndex joinedLists
+            in
+            beforeSuperBadGuy
+                ++ [ ( index, SuperFraudster ) ]
+                ++ afterSuperBadGuy
+                |> List.indexedMap
+                    (\index ( _, cellType ) ->
+                        if index >= floor ((toFloat rows * toFloat rows) / 2) then
+                            ( index + 1, cellType )
+                        else
+                            ( index, cellType )
+                    )
+
+        Nothing ->
+            joinedLists
+
+
+createContentList : Int -> Int -> Int -> Bool -> List ContentType
+createContentList emptySpaces numberOfFraudsters numberOfClients isSuperBadGuyTick =
+    let
+        fraudsters =
+            List.range 1 numberOfFraudsters
+                |> List.map (\_ -> Fraudster)
+
+        clients =
+            List.range 1 numberOfClients
+                |> List.map (\_ -> Client)
+
+        superbadGuy =
+            if isSuperBadGuyTick then
+                [ SuperFraudster ]
+            else
+                []
+
+        empties =
+            List.range 1 (emptySpaces - numberOfFraudsters - numberOfClients)
+                |> List.map (\_ -> Empty)
+    in
+    fraudsters
+        ++ clients
+        ++ superbadGuy
+        ++ (if isSuperBadGuyTick then
+                List.take (List.length empties - 1) empties
+            else
+                empties
+           )
 
 
 insertContentType : Int -> ContentType -> Dict Int ContentType -> Dict Int ContentType
@@ -563,6 +536,11 @@ createRandomNumberGeneratorList emptyCells countOfGenerators =
             )
 
 
+randomList : Int -> Int -> List Int
+randomList seed count =
+    Tuple.first <| Random.step (Random.list count (Random.int 0 1000)) (Random.initialSeed seed)
+
+
 randomSequence : List (Random.Generator Int) -> Int -> List Int
 randomSequence generators seed =
     generators
@@ -613,15 +591,12 @@ calculatePlayingTime lastTick startedTime =
 
 makeGrid : Int -> Dict Int ContentType -> List (Html Msg)
 makeGrid rows gridContents =
-    List.range 1 (rows * rows)
+    List.range 0 ((rows * rows) - 1)
         |> List.map
             (\index ->
                 let
-                    floatRows =
-                        toFloat rows
-
                     logoItem =
-                        if toFloat index == ((floatRows * floatRows + 1) / 2) then
+                        if index == floor ((toFloat rows * toFloat rows) / 2) then
                             [ class "grid-logo" ]
                         else
                             []
