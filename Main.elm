@@ -108,12 +108,139 @@ type alias PlayerScore =
 
 
 
+-- ApplyTick Helpers
+
+
+getLevelConfig : Maybe Level -> ( Int, Int, Int )
+getLevelConfig level =
+    case level of
+        Just Level1 ->
+            ( 2, 1, 3 )
+
+        Just Level2 ->
+            ( 4, 2, 5 )
+
+        Just Level3 ->
+            ( 6, 3, 7 )
+
+        Just Level4 ->
+            ( 8, 5, 9 )
+
+        Nothing ->
+            ( 0, 0, 0 )
+
+
+isSuperBadGuyTick : Maybe Int -> Int -> Bool
+isSuperBadGuyTick superBadGuyTick tickCount =
+    case superBadGuyTick of
+        Just superBadGuyTick ->
+            superBadGuyTick == tickCount
+
+        Nothing ->
+            False
+
+
+getSuperBadGuyFromGrid : Maybe Int -> Int -> Dict Int ContentType -> List ( Int, ContentType )
+getSuperBadGuyFromGrid superBadGuyTick tickCount gridContents =
+    case superBadGuyTick of
+        Just superBadGuyTick ->
+            if (superBadGuyTick + 2) >= tickCount then
+                Dict.toList gridContents
+                    |> List.filter
+                        (\( index, cellType ) ->
+                            cellType == SuperFraudster
+                        )
+            else
+                []
+
+        Nothing ->
+            []
+
+
+adjustListsWithSuperBadGuy : Int -> List ( Int, ContentType ) -> List ( Int, ContentType ) -> List ( Int, ContentType )
+adjustListsWithSuperBadGuy rows joinedLists superBadGuyRemains =
+    case List.head superBadGuyRemains of
+        Just ( index, _ ) ->
+            let
+                adjustedIndex =
+                    if index >= floor ((toFloat rows * toFloat rows) / 2) then
+                        index - 1
+                    else
+                        index
+
+                beforeSuperBadGuy =
+                    List.take adjustedIndex joinedLists
+
+                afterSuperBadGuy =
+                    List.drop adjustedIndex joinedLists
+            in
+            beforeSuperBadGuy
+                ++ [ ( index, SuperFraudster ) ]
+                ++ afterSuperBadGuy
+                |> List.indexedMap
+                    (\index ( _, cellType ) ->
+                        if index >= floor ((toFloat rows * toFloat rows) / 2) then
+                            ( index + 1, cellType )
+                        else
+                            ( index, cellType )
+                    )
+
+        Nothing ->
+            joinedLists
+
+
+
 -- UPDATE
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
     case msg of
+        ApplyTick ->
+            let
+                superBadGuyRemains =
+                    getSuperBadGuyFromGrid model.superBadGuyTick model.tickCount model.gridContents
+
+                ( numberOfClients, numberOfFraudsters, rows ) =
+                    getLevelConfig model.level
+
+                emptySpaces =
+                    if List.isEmpty superBadGuyRemains then
+                        (rows * rows) - 1
+                    else
+                        (rows * rows) - 2
+
+                cellContentList =
+                    createContentList emptySpaces numberOfFraudsters numberOfClients (isSuperBadGuyTick model.superBadGuyTick model.tickCount)
+
+                randomNumberList =
+                    case ( model.lastTick, model.startedTime ) of
+                        ( Just time, _ ) ->
+                            randomList (floor time) emptySpaces
+
+                        ( _, Just time ) ->
+                            randomList (floor time) emptySpaces
+
+                        _ ->
+                            []
+
+                joinedLists =
+                    List.map2 (\content randomNumber -> ( content, randomNumber )) cellContentList randomNumberList
+                        |> List.sortBy (\( _, randomNumber ) -> randomNumber)
+                        |> List.indexedMap
+                            (\index ( cellType, _ ) ->
+                                if index >= floor ((toFloat rows * toFloat rows) / 2) then
+                                    ( index + 1, cellType )
+                                else
+                                    ( index, cellType )
+                            )
+
+                gridContents =
+                    adjustListsWithSuperBadGuy rows joinedLists superBadGuyRemains
+                        |> Dict.fromList
+            in
+            ( { model | gridContents = gridContents }, Cmd.none )
+
         ClickBox index ->
             let
                 ( fraudsters, customers, superbadGuy ) =
@@ -164,85 +291,6 @@ update msg model =
 
         GameEnded ->
             ( { model | gameState = Results }, Ports.requestForScores () )
-
-        ApplyTick ->
-            let
-                isSuperBadGuyTick =
-                    case model.superBadGuyTick of
-                        Just superBadGuyTick ->
-                            superBadGuyTick == model.tickCount
-
-                        Nothing ->
-                            False
-
-                superBadGuyRemains =
-                    case model.superBadGuyTick of
-                        Just superBadGuyTick ->
-                            if (superBadGuyTick + 2) >= model.tickCount then
-                                Dict.toList model.gridContents
-                                    |> List.filter
-                                        (\( index, cellType ) ->
-                                            cellType == SuperFraudster
-                                        )
-                            else
-                                []
-
-                        Nothing ->
-                            []
-
-                ( numberOfClients, numberOfFraudsters, rows ) =
-                    case model.level of
-                        Just Level1 ->
-                            ( 2, 1, 3 )
-
-                        Just Level2 ->
-                            ( 4, 2, 5 )
-
-                        Just Level3 ->
-                            ( 6, 3, 7 )
-
-                        Just Level4 ->
-                            ( 8, 5, 9 )
-
-                        Nothing ->
-                            ( 0, 0, 0 )
-
-                emptySpaces =
-                    if List.isEmpty superBadGuyRemains then
-                        (rows * rows) - 1
-                    else
-                        (rows * rows) - 2
-
-                cellContentList =
-                    createContentList emptySpaces numberOfFraudsters numberOfClients isSuperBadGuyTick
-
-                randomNumberList =
-                    case ( model.lastTick, model.startedTime ) of
-                        ( Just time, _ ) ->
-                            randomList (floor time) emptySpaces
-
-                        ( _, Just time ) ->
-                            randomList (floor time) emptySpaces
-
-                        _ ->
-                            []
-
-                joinedLists =
-                    List.map2 (\content randomNumber -> ( content, randomNumber )) cellContentList randomNumberList
-                        |> List.sortBy (\( _, randomNumber ) -> randomNumber)
-                        |> List.indexedMap
-                            (\index ( cellType, _ ) ->
-                                if index >= floor ((toFloat rows * toFloat rows) / 2) then
-                                    ( index + 1, cellType )
-                                else
-                                    ( index, cellType )
-                            )
-
-                gridContents =
-                    adjustListsWithSuperBadGuy rows joinedLists superBadGuyRemains
-                        |> Dict.fromList
-            in
-            ( { model | gridContents = gridContents }, Cmd.none )
 
         ReceiveScores (Ok scores) ->
             ( { model | playerScores = scores }, Cmd.none )
@@ -308,38 +356,6 @@ update msg model =
                         , level = Just (scoreToLevel model.score)
                         , tickCount = model.tickCount + 1
                     }
-
-
-adjustListsWithSuperBadGuy : Int -> List ( Int, ContentType ) -> List ( Int, ContentType ) -> List ( Int, ContentType )
-adjustListsWithSuperBadGuy rows joinedLists superBadGuyRemains =
-    case List.head superBadGuyRemains of
-        Just ( index, _ ) ->
-            let
-                adjustedIndex =
-                    if index >= floor ((toFloat rows * toFloat rows) / 2) then
-                        index - 1
-                    else
-                        index
-
-                beforeSuperBadGuy =
-                    List.take adjustedIndex joinedLists
-
-                afterSuperBadGuy =
-                    List.drop adjustedIndex joinedLists
-            in
-            beforeSuperBadGuy
-                ++ [ ( index, SuperFraudster ) ]
-                ++ afterSuperBadGuy
-                |> List.indexedMap
-                    (\index ( _, cellType ) ->
-                        if index >= floor ((toFloat rows * toFloat rows) / 2) then
-                            ( index + 1, cellType )
-                        else
-                            ( index, cellType )
-                    )
-
-        Nothing ->
-            joinedLists
 
 
 createContentList : Int -> Int -> Int -> Bool -> List ContentType
@@ -524,30 +540,9 @@ scoreToPercentage ( fraudsters, customers, superbadGuy ) =
     )
 
 
-createRandomNumberGeneratorList : Int -> Int -> List (Random.Generator Int)
-createRandomNumberGeneratorList emptyCells countOfGenerators =
-    List.range 1 emptyCells
-        |> List.filterMap
-            (\index ->
-                if index <= countOfGenerators then
-                    Just (Random.int 1 (emptyCells - (index - 1)))
-                else
-                    Nothing
-            )
-
-
 randomList : Int -> Int -> List Int
 randomList seed count =
     Tuple.first <| Random.step (Random.list count (Random.int 0 1000)) (Random.initialSeed seed)
-
-
-randomSequence : List (Random.Generator Int) -> Int -> List Int
-randomSequence generators seed =
-    generators
-        |> List.indexedMap
-            (\index generator ->
-                Tuple.first <| Random.step generator (Random.initialSeed ((index + 1) * seed))
-            )
 
 
 randomTick : Int -> Int
