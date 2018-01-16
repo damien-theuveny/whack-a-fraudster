@@ -35,7 +35,8 @@ type alias Model =
     , playerScores : List PlayerScore
     , randomSequence : List Int
     , superBadGuyTick : Maybe Int
-    , score : ( Int, Int, Int )
+    , superCustomerTick : Maybe Int
+    , score : ( Int, Int, Int, Int )
     , startedTime : Maybe Time
     , lastTick : Maybe Time
     , tickCount : Int
@@ -52,7 +53,8 @@ initialModel =
     , playerScores = []
     , randomSequence = []
     , superBadGuyTick = Nothing
-    , score = ( 0, 0, 0 )
+    , superCustomerTick = Nothing
+    , score = ( 0, 0, 0, 0 )
     , startedTime = Nothing
     , lastTick = Nothing
     , tickCount = 0
@@ -85,6 +87,7 @@ type ContentType
     = Empty
     | Fraudster
     | SuperFraudster
+    | SuperCustomer
     | Client
 
 
@@ -140,6 +143,16 @@ isSuperBadGuyTick superBadGuyTick tickCount =
             False
 
 
+isSuperCustomerTick : Maybe Int -> Int -> Bool
+isSuperCustomerTick superCustomerTick tickCount =
+    case superCustomerTick of
+        Just superCustomerTick ->
+            superCustomerTick == tickCount
+
+        Nothing ->
+            False
+
+
 getSuperBadGuyFromGrid : Maybe Int -> Int -> Dict Int ContentType -> List ( Int, ContentType )
 getSuperBadGuyFromGrid superBadGuyTick tickCount gridContents =
     case superBadGuyTick of
@@ -149,6 +162,23 @@ getSuperBadGuyFromGrid superBadGuyTick tickCount gridContents =
                     |> List.filter
                         (\( index, cellType ) ->
                             cellType == SuperFraudster
+                        )
+            else
+                []
+
+        Nothing ->
+            []
+
+
+getSuperCustomerFromGrid : Maybe Int -> Int -> Dict Int ContentType -> List ( Int, ContentType )
+getSuperCustomerFromGrid superCustomerTick tickCount gridContents =
+    case superCustomerTick of
+        Just superCustomerTick ->
+            if (superCustomerTick + 2) >= tickCount then
+                Dict.toList gridContents
+                    |> List.filter
+                        (\( index, cellType ) ->
+                            cellType == SuperCustomer
                         )
             else
                 []
@@ -243,13 +273,25 @@ update msg model =
 
         ClickBox index ->
             let
-                ( fraudsters, customers, superbadGuy ) =
+                ( fraudsters, customers, superbadGuy, superCustomer ) =
                     model.score
             in
             case Dict.get index model.gridContents of
                 Just SuperFraudster ->
                     ( { model
-                        | score = ( fraudsters, customers, superbadGuy + 1 )
+                        | score = ( fraudsters, customers, superbadGuy + 1, superCustomer )
+                        , gridContents =
+                            Dict.update
+                                index
+                                (Maybe.map (\previousContentTypes -> Empty))
+                                model.gridContents
+                      }
+                    , Cmd.none
+                    )
+
+                Just SuperCustomer ->
+                    ( { model
+                        | score = ( fraudsters, customers, superbadGuy, superCustomer + 1 )
                         , gridContents =
                             Dict.update
                                 index
@@ -261,7 +303,7 @@ update msg model =
 
                 Just Fraudster ->
                     ( { model
-                        | score = ( fraudsters + 1, customers, superbadGuy )
+                        | score = ( fraudsters + 1, customers, superbadGuy, superCustomer )
                         , gridContents =
                             Dict.update
                                 index
@@ -273,7 +315,7 @@ update msg model =
 
                 Just Client ->
                     ( { model
-                        | score = ( fraudsters, customers + 1, superbadGuy )
+                        | score = ( fraudsters, customers + 1, superbadGuy, superCustomer )
                         , gridContents =
                             Dict.update
                                 index
@@ -312,8 +354,9 @@ update msg model =
                         { model
                             | gameState = Playing
                             , level = Just Level1
-                            , score = ( 0, 0, 0 )
+                            , score = ( 0, 0, 0, 0 )
                             , tickCount = 0
+                            , superCustomerTick = Nothing
                             , superBadGuyTick = Nothing
                         }
             in
@@ -322,6 +365,7 @@ update msg model =
         StartedTime time ->
             ( { model
                 | startedTime = Just time
+                , superCustomerTick = Just (randomTick (floor time * 2))
                 , superBadGuyTick = Just (randomTick (floor time))
               }
             , Cmd.none
@@ -450,10 +494,10 @@ inGameView model =
 resultsView : Model -> Html Msg
 resultsView model =
     let
-        ( fraudstersPercentage, customersPercentage, superbadGuyPercentage ) =
+        ( fraudstersPercentage, customersPercentage, superbadGuyPercentage, superCustomerPercentage ) =
             scoreToPercentage model.score
 
-        ( fraudsters, customers, superbadGuy ) =
+        ( fraudsters, customers, superbadGuy, superCustomer ) =
             model.score
     in
     div []
@@ -510,8 +554,8 @@ playerScoreDisplay playerScores =
             )
 
 
-scoreToPercentage : ( Int, Int, Int ) -> ( Float, Float, Float )
-scoreToPercentage ( fraudsters, customers, superbadGuy ) =
+scoreToPercentage : ( Int, Int, Int, Int ) -> ( Float, Float, Float, Float )
+scoreToPercentage ( fraudsters, customers, superbadGuy, superCustomer ) =
     let
         fraudstersScore =
             fraudsters * 50
@@ -522,8 +566,11 @@ scoreToPercentage ( fraudsters, customers, superbadGuy ) =
         superbadGuyScore =
             superbadGuy * 250
 
+        superCustomerScore =
+            superCustomer * 500
+
         total =
-            fraudstersScore + customersScore + superbadGuyScore
+            fraudstersScore + customersScore + superbadGuyScore + superCustomerScore
     in
     ( if total == 0 && fraudsters == 0 && customers == 0 then
         0
@@ -537,6 +584,10 @@ scoreToPercentage ( fraudsters, customers, superbadGuy ) =
         0
       else
         (toFloat superbadGuyScore / toFloat total) * 100
+    , if total == 0 && fraudsters == 0 && customers == 0 then
+        0
+      else
+        (toFloat superCustomerScore / toFloat total) * 100
     )
 
 
@@ -550,8 +601,8 @@ randomTick seed =
     Tuple.first <| Random.step (Random.int 1 12) (Random.initialSeed seed)
 
 
-scoreToLevel : ( Int, Int, Int ) -> Level
-scoreToLevel ( fraudsters, customers, superbadGuy ) =
+scoreToLevel : ( Int, Int, Int, Int ) -> Level
+scoreToLevel ( fraudsters, customers, superbadGuy, superCustomer ) =
     let
         translatedScore =
             superbadGuy * 250 + fraudsters * 50
@@ -566,8 +617,8 @@ scoreToLevel ( fraudsters, customers, superbadGuy ) =
         Level4
 
 
-translateScore : ( Int, Int, Int ) -> Int
-translateScore ( fraudsters, customers, superbadGuy ) =
+translateScore : ( Int, Int, Int, Int ) -> Int
+translateScore ( fraudsters, customers, superbadGuy, superCustomer ) =
     superbadGuy * 250 + fraudsters * 50 - customers * 100
 
 
@@ -606,6 +657,9 @@ makeGrid rows gridContents =
 
                             Just SuperFraudster ->
                                 [ class "super-fraudster" ]
+
+                            Just SuperCustomer ->
+                                [ class "super-customer" ]
 
                             _ ->
                                 []

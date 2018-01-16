@@ -107,6 +107,10 @@ button {
   background-color: rgba(255, 0, 0, 0.8);
 }
 
+.super-customer {
+  background-color: rgba(0, 255, 0, 0.8);
+}
+
 .score {
   text-align: center;
   margin-top: 20px;
