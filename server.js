@@ -110,6 +110,14 @@ wsServer.on('request', function(request) {
       };
     }
 
+    if(parsedData.type === "endGameSignal") {
+      for (var i=0; i < clients.length; i++) {
+        clients[i].sendUTF(JSON.stringify({
+          type: 'sharingEndGame'
+        }));
+      };
+    }
+
   });
 
   // user disconnected

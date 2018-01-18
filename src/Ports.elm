@@ -21,6 +21,9 @@ port registeredAsLeadPlayer : (Bool -> msg) -> Sub msg
 port requestForScores : () -> Cmd msg
 
 
+port sendEndGameSignal : () -> Cmd msg
+
+
 port sendGridContents : String -> Cmd msg
 
 
@@ -43,6 +46,9 @@ port storeScore : ( String, Int ) -> Cmd msg
 
 
 port updateClickBox : (Int -> msg) -> Sub msg
+
+
+port updateEndGame : (() -> msg) -> Sub msg
 
 
 port updateGridContents : (String -> msg) -> Sub msg

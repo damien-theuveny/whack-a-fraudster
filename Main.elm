@@ -470,7 +470,16 @@ update msg model =
                             False
             in
                 if gameEnded then
-                    update GameEnded model
+                    let
+                        ( updatedModel, updatedCmd ) =
+                            update GameEnded model
+                    in
+                        ( updatedModel
+                        , Cmd.batch
+                            [ updatedCmd
+                            , Ports.sendEndGameSignal ()
+                            ]
+                        )
                 else
                     let
                         ( updatedModel, updatedCmd ) =
@@ -533,9 +542,6 @@ update msg model =
 
         UpdateMultiplayerLevel int ->
             let
-                _ =
-                    Debug.log "test" int
-
                 convertedIntToLevel =
                     case int of
                         1 ->
@@ -934,6 +940,7 @@ subscriptions model =
                         [ Ports.updateGridContents (decodeGridContents >> UpdateMultiplayerGridContents)
                         , Ports.updateClickBox ClickBox
                         , Ports.updateLevel UpdateMultiplayerLevel
+                        , Ports.updateEndGame (always GameEnded)
                         ]
                 else
                     Sub.batch
