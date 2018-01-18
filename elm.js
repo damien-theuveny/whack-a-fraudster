@@ -10535,412 +10535,183 @@ var _user$project$Main$view = function (model) {
 var _user$project$Main$ApplyTick = {ctor: 'ApplyTick'};
 var _user$project$Main$update = F2(
 	function (msg, model) {
-		var _p56 = msg;
-		switch (_p56.ctor) {
-			case 'ApplyTick':
-				var _p57 = _user$project$Main$getLevelConfig(model.level);
-				var numberOfClients = _p57._0;
-				var numberOfFraudsters = _p57._1;
-				var rows = _p57._2;
-				var superBadGuyRemains = A3(_user$project$Main$getSuperBadGuyFromGrid, model.superBadGuyTick, model.tickCount, model.gridContents);
-				var emptySpaces = _elm_lang$core$List$isEmpty(superBadGuyRemains) ? ((rows * rows) - 1) : ((rows * rows) - 2);
-				var cellContentList = A4(
-					_user$project$Main$createContentList,
-					emptySpaces,
-					numberOfFraudsters,
-					numberOfClients,
-					A2(_user$project$Main$isSuperBadGuyTick, model.superBadGuyTick, model.tickCount));
-				var randomNumberList = function () {
-					var _p58 = {ctor: '_Tuple2', _0: model.lastTick, _1: model.startedTime};
-					_v27_2:
-					do {
-						if (_p58.ctor === '_Tuple2') {
-							if (_p58._0.ctor === 'Just') {
-								return A2(
-									_user$project$Main$randomList,
-									_elm_lang$core$Basics$floor(_p58._0._0),
-									emptySpaces);
-							} else {
-								if (_p58._1.ctor === 'Just') {
+		update:
+		while (true) {
+			var _p56 = msg;
+			switch (_p56.ctor) {
+				case 'ApplyTick':
+					var _p57 = _user$project$Main$getLevelConfig(model.level);
+					var numberOfClients = _p57._0;
+					var numberOfFraudsters = _p57._1;
+					var rows = _p57._2;
+					var superBadGuyRemains = A3(_user$project$Main$getSuperBadGuyFromGrid, model.superBadGuyTick, model.tickCount, model.gridContents);
+					var emptySpaces = _elm_lang$core$List$isEmpty(superBadGuyRemains) ? ((rows * rows) - 1) : ((rows * rows) - 2);
+					var cellContentList = A4(
+						_user$project$Main$createContentList,
+						emptySpaces,
+						numberOfFraudsters,
+						numberOfClients,
+						A2(_user$project$Main$isSuperBadGuyTick, model.superBadGuyTick, model.tickCount));
+					var randomNumberList = function () {
+						var _p58 = {ctor: '_Tuple2', _0: model.lastTick, _1: model.startedTime};
+						_v27_2:
+						do {
+							if (_p58.ctor === '_Tuple2') {
+								if (_p58._0.ctor === 'Just') {
 									return A2(
 										_user$project$Main$randomList,
-										_elm_lang$core$Basics$floor(_p58._1._0),
+										_elm_lang$core$Basics$floor(_p58._0._0),
 										emptySpaces);
 								} else {
-									break _v27_2;
-								}
-							}
-						} else {
-							break _v27_2;
-						}
-					} while(false);
-					return {ctor: '[]'};
-				}();
-				var joinedLists = A2(
-					_elm_lang$core$List$indexedMap,
-					F2(
-						function (index, _p59) {
-							var _p60 = _p59;
-							var _p61 = _p60._0;
-							return (_elm_lang$core$Native_Utils.cmp(
-								index,
-								_elm_lang$core$Basics$floor(
-									(_elm_lang$core$Basics$toFloat(rows) * _elm_lang$core$Basics$toFloat(rows)) / 2)) > -1) ? {ctor: '_Tuple2', _0: index + 1, _1: _p61} : {ctor: '_Tuple2', _0: index, _1: _p61};
-						}),
-					A2(
-						_elm_lang$core$List$sortBy,
-						function (_p62) {
-							var _p63 = _p62;
-							return _p63._1;
-						},
-						A3(
-							_elm_lang$core$List$map2,
-							F2(
-								function (content, randomNumber) {
-									return {ctor: '_Tuple2', _0: content, _1: randomNumber};
-								}),
-							cellContentList,
-							randomNumberList)));
-				var gridContents = _elm_lang$core$Dict$fromList(
-					A3(_user$project$Main$adjustListsWithSuperBadGuy, rows, joinedLists, superBadGuyRemains));
-				return (model.multiplayerMode.playerIsLead && model.multiplayerMode.multiplayer) ? {
-					ctor: '_Tuple2',
-					_0: _elm_lang$core$Native_Utils.update(
-						model,
-						{gridContents: gridContents}),
-					_1: _user$project$Ports$sendGridContents(
-						_user$project$Main$encodeGridContents(gridContents))
-				} : {
-					ctor: '_Tuple2',
-					_0: _elm_lang$core$Native_Utils.update(
-						model,
-						{gridContents: gridContents}),
-					_1: _elm_lang$core$Platform_Cmd$none
-				};
-			case 'ClickBox':
-				var _p66 = _p56._0;
-				var cmd = model.multiplayerMode.multiplayer ? _user$project$Ports$clickBox(_p66) : _elm_lang$core$Platform_Cmd$none;
-				var _p64 = model.score;
-				var fraudsters = _p64._0;
-				var customers = _p64._1;
-				var superbadGuy = _p64._2;
-				var _p65 = A2(_elm_lang$core$Dict$get, _p66, model.gridContents);
-				_v30_3:
-				do {
-					if (_p65.ctor === 'Just') {
-						switch (_p65._0.ctor) {
-							case 'SuperFraudster':
-								return {
-									ctor: '_Tuple2',
-									_0: _elm_lang$core$Native_Utils.update(
-										model,
-										{
-											score: {ctor: '_Tuple3', _0: fraudsters, _1: customers, _2: superbadGuy + 1},
-											gridContents: A3(
-												_elm_lang$core$Dict$update,
-												_p66,
-												_elm_lang$core$Maybe$map(
-													function (previousContentTypes) {
-														return _user$project$Main$Empty;
-													}),
-												model.gridContents)
-										}),
-									_1: cmd
-								};
-							case 'Fraudster':
-								return {
-									ctor: '_Tuple2',
-									_0: _elm_lang$core$Native_Utils.update(
-										model,
-										{
-											score: {ctor: '_Tuple3', _0: fraudsters + 1, _1: customers, _2: superbadGuy},
-											gridContents: A3(
-												_elm_lang$core$Dict$update,
-												_p66,
-												_elm_lang$core$Maybe$map(
-													function (previousContentTypes) {
-														return _user$project$Main$Empty;
-													}),
-												model.gridContents)
-										}),
-									_1: cmd
-								};
-							case 'Client':
-								return {
-									ctor: '_Tuple2',
-									_0: _elm_lang$core$Native_Utils.update(
-										model,
-										{
-											score: {ctor: '_Tuple3', _0: fraudsters, _1: customers + 1, _2: superbadGuy},
-											gridContents: A3(
-												_elm_lang$core$Dict$update,
-												_p66,
-												_elm_lang$core$Maybe$map(
-													function (previousContentTypes) {
-														return _user$project$Main$Empty;
-													}),
-												model.gridContents)
-										}),
-									_1: cmd
-								};
-							default:
-								break _v30_3;
-						}
-					} else {
-						break _v30_3;
-					}
-				} while(false);
-				return {ctor: '_Tuple2', _0: model, _1: _elm_lang$core$Platform_Cmd$none};
-			case 'ChangeName':
-				return {
-					ctor: '_Tuple2',
-					_0: _elm_lang$core$Native_Utils.update(
-						model,
-						{playerName: _p56._0}),
-					_1: _elm_lang$core$Platform_Cmd$none
-				};
-			case 'GameEnded':
-				return {
-					ctor: '_Tuple2',
-					_0: _elm_lang$core$Native_Utils.update(
-						model,
-						{gameState: _user$project$Main$Results}),
-					_1: _user$project$Ports$requestForScores(
-						{ctor: '_Tuple0'})
-				};
-			case 'MultiplayerConnectionOpenned':
-				var _p67 = model;
-				var multiplayerMode = _p67.multiplayerMode;
-				return {
-					ctor: '_Tuple2',
-					_0: _elm_lang$core$Native_Utils.update(
-						model,
-						{
-							multiplayerMode: _elm_lang$core$Native_Utils.update(
-								multiplayerMode,
-								{multiplayer: true, requestingPlayerName: true})
-						}),
-					_1: _elm_lang$core$Platform_Cmd$none
-				};
-			case 'PlayerRegistered':
-				if (_p56._0.ctor === 'Ok') {
-					var _p69 = _p56._0._0;
-					var _p68 = model;
-					var multiplayerMode = _p68.multiplayerMode;
-					return {
-						ctor: '_Tuple2',
-						_0: _elm_lang$core$Native_Utils.update(
-							model,
-							{
-								multiplayerMode: _elm_lang$core$Native_Utils.update(
-									multiplayerMode,
-									{playerIsLead: _p69.lead, playerColour: _p69.colour})
-							}),
-						_1: _elm_lang$core$Platform_Cmd$none
-					};
-				} else {
-					return {ctor: '_Tuple2', _0: model, _1: _elm_lang$core$Platform_Cmd$none};
-				}
-			case 'PlaySinglePlayer':
-				var _p70 = model;
-				var multiplayerMode = _p70.multiplayerMode;
-				return {
-					ctor: '_Tuple2',
-					_0: _elm_lang$core$Native_Utils.update(
-						model,
-						{
-							multiplayerMode: _elm_lang$core$Native_Utils.update(
-								multiplayerMode,
-								{multiplayer: false, requestingPlayerName: false})
-						}),
-					_1: _elm_lang$core$Platform_Cmd$none
-				};
-			case 'ReceiveScores':
-				if (_p56._0.ctor === 'Ok') {
-					return {
-						ctor: '_Tuple2',
-						_0: _elm_lang$core$Native_Utils.update(
-							model,
-							{playerScores: _p56._0._0}),
-						_1: _elm_lang$core$Platform_Cmd$none
-					};
-				} else {
-					return {ctor: '_Tuple2', _0: model, _1: _elm_lang$core$Platform_Cmd$none};
-				}
-			case 'RequestNewName':
-				var _p71 = model;
-				var multiplayerMode = _p71.multiplayerMode;
-				return {
-					ctor: '_Tuple2',
-					_0: _elm_lang$core$Native_Utils.update(
-						model,
-						{
-							multiplayerMode: _elm_lang$core$Native_Utils.update(
-								multiplayerMode,
-								{requestingPlayerName: true})
-						}),
-					_1: _elm_lang$core$Platform_Cmd$none
-				};
-			case 'Reset':
-				return {
-					ctor: '_Tuple2',
-					_0: _elm_lang$core$Native_Utils.update(
-						model,
-						{gameState: _user$project$Main$Welcome}),
-					_1: _elm_lang$core$Platform_Cmd$none
-				};
-			case 'SendName':
-				var _p72 = model;
-				var multiplayerMode = _p72.multiplayerMode;
-				return {
-					ctor: '_Tuple2',
-					_0: _elm_lang$core$Native_Utils.update(
-						model,
-						{
-							multiplayerMode: _elm_lang$core$Native_Utils.update(
-								multiplayerMode,
-								{requestingPlayerName: false})
-						}),
-					_1: _user$project$Ports$sendPlayerName(model.playerName)
-				};
-			case 'SendScore':
-				return {
-					ctor: '_Tuple2',
-					_0: model,
-					_1: _user$project$Ports$storeScore(
-						{
-							ctor: '_Tuple2',
-							_0: model.playerName,
-							_1: _user$project$Main$translateScore(model.score)
-						})
-				};
-			case 'StartGame':
-				if (model.multiplayerMode.playerIsLead || (!model.multiplayerMode.multiplayer)) {
-					var _p73 = A2(
-						_user$project$Main$update,
-						_user$project$Main$ApplyTick,
-						_elm_lang$core$Native_Utils.update(
-							model,
-							{
-								gameState: _user$project$Main$Playing,
-								level: _elm_lang$core$Maybe$Just(_user$project$Main$Level1),
-								score: {ctor: '_Tuple3', _0: 0, _1: 0, _2: 0},
-								tickCount: 0,
-								superBadGuyTick: _elm_lang$core$Maybe$Nothing
-							}));
-					var updatedState = _p73._0;
-					var updatedCmd = _p73._1;
-					return {
-						ctor: '_Tuple2',
-						_0: updatedState,
-						_1: _elm_lang$core$Platform_Cmd$batch(
-							{
-								ctor: '::',
-								_0: updatedCmd,
-								_1: {
-									ctor: '::',
-									_0: A2(_elm_lang$core$Task$perform, _user$project$Main$StartedTime, _elm_lang$core$Time$now),
-									_1: {
-										ctor: '::',
-										_0: _user$project$Ports$gameStartedByLead(
-											{ctor: '_Tuple0'}),
-										_1: {
-											ctor: '::',
-											_0: _user$project$Ports$sendGridContents(
-												_user$project$Main$encodeGridContents(updatedState.gridContents)),
-											_1: {ctor: '[]'}
-										}
+									if (_p58._1.ctor === 'Just') {
+										return A2(
+											_user$project$Main$randomList,
+											_elm_lang$core$Basics$floor(_p58._1._0),
+											emptySpaces);
+									} else {
+										break _v27_2;
 									}
 								}
-							})
-					};
-				} else {
-					return {
+							} else {
+								break _v27_2;
+							}
+						} while(false);
+						return {ctor: '[]'};
+					}();
+					var joinedLists = A2(
+						_elm_lang$core$List$indexedMap,
+						F2(
+							function (index, _p59) {
+								var _p60 = _p59;
+								var _p61 = _p60._0;
+								return (_elm_lang$core$Native_Utils.cmp(
+									index,
+									_elm_lang$core$Basics$floor(
+										(_elm_lang$core$Basics$toFloat(rows) * _elm_lang$core$Basics$toFloat(rows)) / 2)) > -1) ? {ctor: '_Tuple2', _0: index + 1, _1: _p61} : {ctor: '_Tuple2', _0: index, _1: _p61};
+							}),
+						A2(
+							_elm_lang$core$List$sortBy,
+							function (_p62) {
+								var _p63 = _p62;
+								return _p63._1;
+							},
+							A3(
+								_elm_lang$core$List$map2,
+								F2(
+									function (content, randomNumber) {
+										return {ctor: '_Tuple2', _0: content, _1: randomNumber};
+									}),
+								cellContentList,
+								randomNumberList)));
+					var gridContents = _elm_lang$core$Dict$fromList(
+						A3(_user$project$Main$adjustListsWithSuperBadGuy, rows, joinedLists, superBadGuyRemains));
+					return (model.multiplayerMode.playerIsLead && model.multiplayerMode.multiplayer) ? {
 						ctor: '_Tuple2',
-						_0: model,
-						_1: _user$project$Ports$sendPlayerIsReady(
-							{ctor: '_Tuple0'})
+						_0: _elm_lang$core$Native_Utils.update(
+							model,
+							{gridContents: gridContents}),
+						_1: _user$project$Ports$sendGridContents(
+							_user$project$Main$encodeGridContents(gridContents))
+					} : {
+						ctor: '_Tuple2',
+						_0: _elm_lang$core$Native_Utils.update(
+							model,
+							{gridContents: gridContents}),
+						_1: _elm_lang$core$Platform_Cmd$none
 					};
-				}
-			case 'StartMultiplayerGame':
-				if (model.multiplayerMode.playerIsLead) {
+				case 'ClickBox':
+					var _p66 = _p56._0;
+					var cmd = model.multiplayerMode.multiplayer ? _user$project$Ports$clickBox(_p66) : _elm_lang$core$Platform_Cmd$none;
+					var _p64 = model.score;
+					var fraudsters = _p64._0;
+					var customers = _p64._1;
+					var superbadGuy = _p64._2;
+					var _p65 = A2(_elm_lang$core$Dict$get, _p66, model.gridContents);
+					_v30_3:
+					do {
+						if (_p65.ctor === 'Just') {
+							switch (_p65._0.ctor) {
+								case 'SuperFraudster':
+									return {
+										ctor: '_Tuple2',
+										_0: _elm_lang$core$Native_Utils.update(
+											model,
+											{
+												score: {ctor: '_Tuple3', _0: fraudsters, _1: customers, _2: superbadGuy + 1},
+												gridContents: A3(
+													_elm_lang$core$Dict$update,
+													_p66,
+													_elm_lang$core$Maybe$map(
+														function (previousContentTypes) {
+															return _user$project$Main$Empty;
+														}),
+													model.gridContents)
+											}),
+										_1: cmd
+									};
+								case 'Fraudster':
+									return {
+										ctor: '_Tuple2',
+										_0: _elm_lang$core$Native_Utils.update(
+											model,
+											{
+												score: {ctor: '_Tuple3', _0: fraudsters + 1, _1: customers, _2: superbadGuy},
+												gridContents: A3(
+													_elm_lang$core$Dict$update,
+													_p66,
+													_elm_lang$core$Maybe$map(
+														function (previousContentTypes) {
+															return _user$project$Main$Empty;
+														}),
+													model.gridContents)
+											}),
+										_1: cmd
+									};
+								case 'Client':
+									return {
+										ctor: '_Tuple2',
+										_0: _elm_lang$core$Native_Utils.update(
+											model,
+											{
+												score: {ctor: '_Tuple3', _0: fraudsters, _1: customers + 1, _2: superbadGuy},
+												gridContents: A3(
+													_elm_lang$core$Dict$update,
+													_p66,
+													_elm_lang$core$Maybe$map(
+														function (previousContentTypes) {
+															return _user$project$Main$Empty;
+														}),
+													model.gridContents)
+											}),
+										_1: cmd
+									};
+								default:
+									break _v30_3;
+							}
+						} else {
+							break _v30_3;
+						}
+					} while(false);
 					return {ctor: '_Tuple2', _0: model, _1: _elm_lang$core$Platform_Cmd$none};
-				} else {
-					var _p74 = model;
-					var multiplayerMode = _p74.multiplayerMode;
+				case 'ChangeName':
 					return {
 						ctor: '_Tuple2',
 						_0: _elm_lang$core$Native_Utils.update(
 							model,
-							{
-								gameState: _user$project$Main$Playing,
-								level: _elm_lang$core$Maybe$Just(_user$project$Main$Level1),
-								multiplayerMode: _elm_lang$core$Native_Utils.update(
-									multiplayerMode,
-									{followingLead: true}),
-								score: {ctor: '_Tuple3', _0: 0, _1: 0, _2: 0},
-								tickCount: 0,
-								superBadGuyTick: _elm_lang$core$Maybe$Nothing
-							}),
+							{playerName: _p56._0}),
 						_1: _elm_lang$core$Platform_Cmd$none
 					};
-				}
-			case 'StartedTime':
-				var _p75 = _p56._0;
-				return {
-					ctor: '_Tuple2',
-					_0: _elm_lang$core$Native_Utils.update(
-						model,
-						{
-							startedTime: _elm_lang$core$Maybe$Just(_p75),
-							superBadGuyTick: _elm_lang$core$Maybe$Just(
-								_user$project$Main$randomTick(
-									_elm_lang$core$Basics$floor(_p75)))
-						}),
-					_1: _elm_lang$core$Platform_Cmd$none
-				};
-			case 'Tick':
-				var _p79 = _p56._0;
-				var gameEnded = function () {
-					var _p76 = {
-						ctor: '_Tuple2',
-						_0: _user$project$Main$scoreToLevel(model.score),
-						_1: model.startedTime
-					};
-					if ((_p76.ctor === '_Tuple2') && (_p76._1.ctor === 'Just')) {
-						switch (_p76._0.ctor) {
-							case 'Level1':
-								return _elm_lang$core$Native_Utils.cmp(
-									_elm_lang$core$Time$inSeconds(_p79 - _p76._1._0),
-									20) > 0;
-							case 'Level2':
-								return _elm_lang$core$Native_Utils.cmp(
-									_elm_lang$core$Time$inSeconds(_p79 - _p76._1._0),
-									40) > 0;
-							case 'Level3':
-								return _elm_lang$core$Native_Utils.cmp(
-									_elm_lang$core$Time$inSeconds(_p79 - _p76._1._0),
-									60) > 0;
-							default:
-								return _elm_lang$core$Native_Utils.cmp(
-									_elm_lang$core$Time$inSeconds(_p79 - _p76._1._0),
-									80) > 0;
-						}
-					} else {
-						return false;
-					}
-				}();
-				if (gameEnded) {
-					var _p77 = A2(_user$project$Main$update, _user$project$Main$GameEnded, model);
-					var updatedModel = _p77._0;
-					var updatedCmd = _p77._1;
+				case 'GameEnded':
 					return {
 						ctor: '_Tuple2',
-						_0: updatedModel,
+						_0: _elm_lang$core$Native_Utils.update(
+							model,
+							{gameState: _user$project$Main$Results}),
 						_1: _elm_lang$core$Platform_Cmd$batch(
 							{
 								ctor: '::',
-								_0: updatedCmd,
+								_0: _user$project$Ports$requestForScores(
+									{ctor: '_Tuple0'}),
 								_1: {
 									ctor: '::',
 									_0: _user$project$Ports$sendEndGameSignal(
@@ -10949,38 +10720,283 @@ var _user$project$Main$update = F2(
 								}
 							})
 					};
-				} else {
-					var _p78 = A2(
-						_user$project$Main$update,
-						_user$project$Main$ApplyTick,
-						_elm_lang$core$Native_Utils.update(
-							model,
-							{
-								lastTick: _elm_lang$core$Maybe$Just(_p79),
-								level: _elm_lang$core$Maybe$Just(
-									_user$project$Main$scoreToLevel(model.score)),
-								tickCount: model.tickCount + 1
-							}));
-					var updatedModel = _p78._0;
-					var updatedCmd = _p78._1;
+				case 'MultiplayerConnectionOpenned':
+					var _p67 = model;
+					var multiplayerMode = _p67.multiplayerMode;
 					return {
 						ctor: '_Tuple2',
-						_0: updatedModel,
-						_1: _elm_lang$core$Platform_Cmd$batch(
+						_0: _elm_lang$core$Native_Utils.update(
+							model,
 							{
-								ctor: '::',
-								_0: updatedCmd,
-								_1: {
-									ctor: '::',
-									_0: _user$project$Ports$sendLevel(
-										_user$project$Main$levelToInt(updatedModel.level)),
-									_1: {ctor: '[]'}
-								}
+								multiplayerMode: _elm_lang$core$Native_Utils.update(
+									multiplayerMode,
+									{multiplayer: true, requestingPlayerName: true})
+							}),
+						_1: _elm_lang$core$Platform_Cmd$none
+					};
+				case 'PlayerRegistered':
+					if (_p56._0.ctor === 'Ok') {
+						var _p69 = _p56._0._0;
+						var _p68 = model;
+						var multiplayerMode = _p68.multiplayerMode;
+						return {
+							ctor: '_Tuple2',
+							_0: _elm_lang$core$Native_Utils.update(
+								model,
+								{
+									multiplayerMode: _elm_lang$core$Native_Utils.update(
+										multiplayerMode,
+										{playerIsLead: _p69.lead, playerColour: _p69.colour})
+								}),
+							_1: _elm_lang$core$Platform_Cmd$none
+						};
+					} else {
+						return {ctor: '_Tuple2', _0: model, _1: _elm_lang$core$Platform_Cmd$none};
+					}
+				case 'PlaySinglePlayer':
+					var _p70 = model;
+					var multiplayerMode = _p70.multiplayerMode;
+					return {
+						ctor: '_Tuple2',
+						_0: _elm_lang$core$Native_Utils.update(
+							model,
+							{
+								multiplayerMode: _elm_lang$core$Native_Utils.update(
+									multiplayerMode,
+									{multiplayer: false, requestingPlayerName: false})
+							}),
+						_1: _elm_lang$core$Platform_Cmd$none
+					};
+				case 'ReceiveScores':
+					if (_p56._0.ctor === 'Ok') {
+						return {
+							ctor: '_Tuple2',
+							_0: _elm_lang$core$Native_Utils.update(
+								model,
+								{playerScores: _p56._0._0}),
+							_1: _elm_lang$core$Platform_Cmd$none
+						};
+					} else {
+						return {ctor: '_Tuple2', _0: model, _1: _elm_lang$core$Platform_Cmd$none};
+					}
+				case 'RequestNewName':
+					var _p71 = model;
+					var multiplayerMode = _p71.multiplayerMode;
+					return {
+						ctor: '_Tuple2',
+						_0: _elm_lang$core$Native_Utils.update(
+							model,
+							{
+								multiplayerMode: _elm_lang$core$Native_Utils.update(
+									multiplayerMode,
+									{requestingPlayerName: true})
+							}),
+						_1: _elm_lang$core$Platform_Cmd$none
+					};
+				case 'Reset':
+					return {
+						ctor: '_Tuple2',
+						_0: _elm_lang$core$Native_Utils.update(
+							model,
+							{gameState: _user$project$Main$Welcome}),
+						_1: _elm_lang$core$Platform_Cmd$none
+					};
+				case 'SendName':
+					var _p72 = model;
+					var multiplayerMode = _p72.multiplayerMode;
+					return {
+						ctor: '_Tuple2',
+						_0: _elm_lang$core$Native_Utils.update(
+							model,
+							{
+								multiplayerMode: _elm_lang$core$Native_Utils.update(
+									multiplayerMode,
+									{requestingPlayerName: false})
+							}),
+						_1: _user$project$Ports$sendPlayerName(model.playerName)
+					};
+				case 'SendScore':
+					return {
+						ctor: '_Tuple2',
+						_0: model,
+						_1: _user$project$Ports$storeScore(
+							{
+								ctor: '_Tuple2',
+								_0: model.playerName,
+								_1: _user$project$Main$translateScore(model.score)
 							})
 					};
-				}
-			case 'UpdateClientNames':
-				if (_p56._0.ctor === 'Ok') {
+				case 'StartGame':
+					if (model.multiplayerMode.playerIsLead || (!model.multiplayerMode.multiplayer)) {
+						var _p73 = A2(
+							_user$project$Main$update,
+							_user$project$Main$ApplyTick,
+							_elm_lang$core$Native_Utils.update(
+								model,
+								{
+									gameState: _user$project$Main$Playing,
+									level: _elm_lang$core$Maybe$Just(_user$project$Main$Level1),
+									score: {ctor: '_Tuple3', _0: 0, _1: 0, _2: 0},
+									tickCount: 0,
+									superBadGuyTick: _elm_lang$core$Maybe$Nothing
+								}));
+						var updatedState = _p73._0;
+						var updatedCmd = _p73._1;
+						return {
+							ctor: '_Tuple2',
+							_0: updatedState,
+							_1: _elm_lang$core$Platform_Cmd$batch(
+								{
+									ctor: '::',
+									_0: updatedCmd,
+									_1: {
+										ctor: '::',
+										_0: A2(_elm_lang$core$Task$perform, _user$project$Main$StartedTime, _elm_lang$core$Time$now),
+										_1: {
+											ctor: '::',
+											_0: _user$project$Ports$gameStartedByLead(
+												{ctor: '_Tuple0'}),
+											_1: {
+												ctor: '::',
+												_0: _user$project$Ports$sendGridContents(
+													_user$project$Main$encodeGridContents(updatedState.gridContents)),
+												_1: {ctor: '[]'}
+											}
+										}
+									}
+								})
+						};
+					} else {
+						return {
+							ctor: '_Tuple2',
+							_0: model,
+							_1: _user$project$Ports$sendPlayerIsReady(
+								{ctor: '_Tuple0'})
+						};
+					}
+				case 'StartMultiplayerGame':
+					if (model.multiplayerMode.playerIsLead) {
+						return {ctor: '_Tuple2', _0: model, _1: _elm_lang$core$Platform_Cmd$none};
+					} else {
+						var _p74 = model;
+						var multiplayerMode = _p74.multiplayerMode;
+						return {
+							ctor: '_Tuple2',
+							_0: _elm_lang$core$Native_Utils.update(
+								model,
+								{
+									gameState: _user$project$Main$Playing,
+									level: _elm_lang$core$Maybe$Just(_user$project$Main$Level1),
+									multiplayerMode: _elm_lang$core$Native_Utils.update(
+										multiplayerMode,
+										{followingLead: true}),
+									score: {ctor: '_Tuple3', _0: 0, _1: 0, _2: 0},
+									tickCount: 0,
+									superBadGuyTick: _elm_lang$core$Maybe$Nothing
+								}),
+							_1: _elm_lang$core$Platform_Cmd$none
+						};
+					}
+				case 'StartedTime':
+					var _p75 = _p56._0;
+					return {
+						ctor: '_Tuple2',
+						_0: _elm_lang$core$Native_Utils.update(
+							model,
+							{
+								startedTime: _elm_lang$core$Maybe$Just(_p75),
+								superBadGuyTick: _elm_lang$core$Maybe$Just(
+									_user$project$Main$randomTick(
+										_elm_lang$core$Basics$floor(_p75)))
+							}),
+						_1: _elm_lang$core$Platform_Cmd$none
+					};
+				case 'Tick':
+					var _p78 = _p56._0;
+					var gameEnded = function () {
+						var _p76 = {
+							ctor: '_Tuple2',
+							_0: _user$project$Main$scoreToLevel(model.score),
+							_1: model.startedTime
+						};
+						if ((_p76.ctor === '_Tuple2') && (_p76._1.ctor === 'Just')) {
+							switch (_p76._0.ctor) {
+								case 'Level1':
+									return _elm_lang$core$Native_Utils.cmp(
+										_elm_lang$core$Time$inSeconds(_p78 - _p76._1._0),
+										20) > 0;
+								case 'Level2':
+									return _elm_lang$core$Native_Utils.cmp(
+										_elm_lang$core$Time$inSeconds(_p78 - _p76._1._0),
+										40) > 0;
+								case 'Level3':
+									return _elm_lang$core$Native_Utils.cmp(
+										_elm_lang$core$Time$inSeconds(_p78 - _p76._1._0),
+										60) > 0;
+								default:
+									return _elm_lang$core$Native_Utils.cmp(
+										_elm_lang$core$Time$inSeconds(_p78 - _p76._1._0),
+										80) > 0;
+							}
+						} else {
+							return false;
+						}
+					}();
+					if (gameEnded) {
+						var _v32 = _user$project$Main$GameEnded,
+							_v33 = model;
+						msg = _v32;
+						model = _v33;
+						continue update;
+					} else {
+						var _p77 = A2(
+							_user$project$Main$update,
+							_user$project$Main$ApplyTick,
+							_elm_lang$core$Native_Utils.update(
+								model,
+								{
+									lastTick: _elm_lang$core$Maybe$Just(_p78),
+									level: _elm_lang$core$Maybe$Just(
+										_user$project$Main$scoreToLevel(model.score)),
+									tickCount: model.tickCount + 1
+								}));
+						var updatedModel = _p77._0;
+						var updatedCmd = _p77._1;
+						return {
+							ctor: '_Tuple2',
+							_0: updatedModel,
+							_1: _elm_lang$core$Platform_Cmd$batch(
+								{
+									ctor: '::',
+									_0: updatedCmd,
+									_1: {
+										ctor: '::',
+										_0: _user$project$Ports$sendLevel(
+											_user$project$Main$levelToInt(updatedModel.level)),
+										_1: {ctor: '[]'}
+									}
+								})
+						};
+					}
+				case 'UpdateClientNames':
+					if (_p56._0.ctor === 'Ok') {
+						var _p79 = model;
+						var multiplayerMode = _p79.multiplayerMode;
+						return {
+							ctor: '_Tuple2',
+							_0: _elm_lang$core$Native_Utils.update(
+								model,
+								{
+									multiplayerMode: _elm_lang$core$Native_Utils.update(
+										multiplayerMode,
+										{playerNames: _p56._0._0})
+								}),
+							_1: _elm_lang$core$Platform_Cmd$none
+						};
+					} else {
+						return {ctor: '_Tuple2', _0: model, _1: _elm_lang$core$Platform_Cmd$none};
+					}
+				case 'UpdateConnections':
 					var _p80 = model;
 					var multiplayerMode = _p80.multiplayerMode;
 					return {
@@ -10990,104 +11006,88 @@ var _user$project$Main$update = F2(
 							{
 								multiplayerMode: _elm_lang$core$Native_Utils.update(
 									multiplayerMode,
-									{playerNames: _p56._0._0})
+									{
+										connectedClients: _elm_lang$core$Maybe$Just(_p56._0)
+									})
 							}),
 						_1: _elm_lang$core$Platform_Cmd$none
 					};
-				} else {
-					return {ctor: '_Tuple2', _0: model, _1: _elm_lang$core$Platform_Cmd$none};
-				}
-			case 'UpdateConnections':
-				var _p81 = model;
-				var multiplayerMode = _p81.multiplayerMode;
-				return {
-					ctor: '_Tuple2',
-					_0: _elm_lang$core$Native_Utils.update(
-						model,
-						{
-							multiplayerMode: _elm_lang$core$Native_Utils.update(
-								multiplayerMode,
+				case 'UpdateMultiplayerGridContents':
+					if (_p56._0.ctor === 'Ok') {
+						var convertToContentType = function (contentString) {
+							var _p81 = contentString;
+							switch (_p81) {
+								case 'Fraudster':
+									return _user$project$Main$Fraudster;
+								case 'SuperFraudster':
+									return _user$project$Main$SuperFraudster;
+								case 'Client':
+									return _user$project$Main$Client;
+								default:
+									return _user$project$Main$Empty;
+							}
+						};
+						var mappedContents = A2(
+							_elm_lang$core$List$map,
+							function (_p82) {
+								var _p83 = _p82;
+								return {
+									ctor: '_Tuple2',
+									_0: _p83._0,
+									_1: convertToContentType(_p83._1)
+								};
+							},
+							_p56._0._0);
+						return {
+							ctor: '_Tuple2',
+							_0: _elm_lang$core$Native_Utils.update(
+								model,
 								{
-									connectedClients: _elm_lang$core$Maybe$Just(_p56._0)
-								})
-						}),
-					_1: _elm_lang$core$Platform_Cmd$none
-				};
-			case 'UpdateMultiplayerGridContents':
-				if (_p56._0.ctor === 'Ok') {
-					var convertToContentType = function (contentString) {
-						var _p82 = contentString;
-						switch (_p82) {
-							case 'Fraudster':
-								return _user$project$Main$Fraudster;
-							case 'SuperFraudster':
-								return _user$project$Main$SuperFraudster;
-							case 'Client':
-								return _user$project$Main$Client;
+									gridContents: _elm_lang$core$Dict$fromList(mappedContents)
+								}),
+							_1: _elm_lang$core$Platform_Cmd$none
+						};
+					} else {
+						return {ctor: '_Tuple2', _0: model, _1: _elm_lang$core$Platform_Cmd$none};
+					}
+				case 'UpdateMultiplayerLevel':
+					var convertedIntToLevel = function () {
+						var _p84 = _p56._0;
+						switch (_p84) {
+							case 1:
+								return _elm_lang$core$Maybe$Just(_user$project$Main$Level1);
+							case 2:
+								return _elm_lang$core$Maybe$Just(_user$project$Main$Level2);
+							case 3:
+								return _elm_lang$core$Maybe$Just(_user$project$Main$Level3);
+							case 4:
+								return _elm_lang$core$Maybe$Just(_user$project$Main$Level4);
 							default:
-								return _user$project$Main$Empty;
+								return _elm_lang$core$Maybe$Nothing;
 						}
+					}();
+					return {
+						ctor: '_Tuple2',
+						_0: _elm_lang$core$Native_Utils.update(
+							model,
+							{level: convertedIntToLevel}),
+						_1: _elm_lang$core$Platform_Cmd$none
 					};
-					var mappedContents = A2(
-						_elm_lang$core$List$map,
-						function (_p83) {
-							var _p84 = _p83;
-							return {
-								ctor: '_Tuple2',
-								_0: _p84._0,
-								_1: convertToContentType(_p84._1)
-							};
-						},
-						_p56._0._0);
+				default:
+					var _p85 = model;
+					var multiplayerMode = _p85.multiplayerMode;
 					return {
 						ctor: '_Tuple2',
 						_0: _elm_lang$core$Native_Utils.update(
 							model,
 							{
-								gridContents: _elm_lang$core$Dict$fromList(mappedContents)
+								multiplayerMode: _elm_lang$core$Native_Utils.update(
+									multiplayerMode,
+									{readyClients: _p56._0})
 							}),
 						_1: _elm_lang$core$Platform_Cmd$none
 					};
-				} else {
-					return {ctor: '_Tuple2', _0: model, _1: _elm_lang$core$Platform_Cmd$none};
-				}
-			case 'UpdateMultiplayerLevel':
-				var convertedIntToLevel = function () {
-					var _p85 = _p56._0;
-					switch (_p85) {
-						case 1:
-							return _elm_lang$core$Maybe$Just(_user$project$Main$Level1);
-						case 2:
-							return _elm_lang$core$Maybe$Just(_user$project$Main$Level2);
-						case 3:
-							return _elm_lang$core$Maybe$Just(_user$project$Main$Level3);
-						case 4:
-							return _elm_lang$core$Maybe$Just(_user$project$Main$Level4);
-						default:
-							return _elm_lang$core$Maybe$Nothing;
-					}
-				}();
-				return {
-					ctor: '_Tuple2',
-					_0: _elm_lang$core$Native_Utils.update(
-						model,
-						{level: convertedIntToLevel}),
-					_1: _elm_lang$core$Platform_Cmd$none
-				};
-			default:
-				var _p86 = model;
-				var multiplayerMode = _p86.multiplayerMode;
-				return {
-					ctor: '_Tuple2',
-					_0: _elm_lang$core$Native_Utils.update(
-						model,
-						{
-							multiplayerMode: _elm_lang$core$Native_Utils.update(
-								multiplayerMode,
-								{readyClients: _p56._0})
-						}),
-					_1: _elm_lang$core$Platform_Cmd$none
-				};
+			}
 		}
 	});
 var _user$project$Main$main = _elm_lang$html$Html$program(

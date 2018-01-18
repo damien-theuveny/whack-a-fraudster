@@ -57,7 +57,7 @@ wsServer.on('request', function(request) {
     // first message sent by user is their name
     if(parsedData.type === "name") {
       var alreadyTaken = clientNames.find(function(element) {
-        return element === parsedData.name;
+        return element.name === parsedData.name;
       });
       if(alreadyTaken || parsedData.name.length === 0) {
         connection.sendUTF(JSON.stringify({ type: 'invalidName' }));
@@ -83,14 +83,19 @@ wsServer.on('request', function(request) {
     }
 
     if(parsedData.type === "playerReady") {
-      readyList.push(userName);
-      for (var i=0; i < clients.length; i++) {
-        clients[i].sendUTF(JSON.stringify({
-          type: 'updateReadyList',
-          data: readyList.length
-        }));
-      };
-      console.log("ready", userName, index, clients.length);
+      var alreadyTaken = readyList.find(function(element) {
+        return element === userName;
+      });
+      if(!alreadyTaken) {
+        readyList.push(userName);
+        for (var i=0; i < clients.length; i++) {
+          clients[i].sendUTF(JSON.stringify({
+            type: 'updateReadyList',
+            data: readyList.length
+          }));
+        };
+        console.log("ready", userName, index, clients.length);
+      }
     }
 
     if(parsedData.type === "notifyAllStart") {
@@ -146,6 +151,7 @@ wsServer.on('request', function(request) {
     console.log((new Date()) + " Peer " + connection.remoteAddress + " disconnected.");
     // remove user from the list of connected clients
     clients.splice(index, 1);
+    clientNames.splice(index, 1);
     for (var i=0; i < clients.length; i++) {
       clients[i].sendUTF(JSON.stringify({
         type: 'connections',

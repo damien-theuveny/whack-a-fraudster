@@ -344,7 +344,7 @@ update msg model =
             ( { model | playerName = name }, Cmd.none )
 
         GameEnded ->
-            ( { model | gameState = Results }, Ports.requestForScores () )
+            ( { model | gameState = Results }, Cmd.batch [ Ports.requestForScores (), Ports.sendEndGameSignal () ] )
 
         MultiplayerConnectionOpenned ->
             let
@@ -501,16 +501,7 @@ update msg model =
                             False
             in
                 if gameEnded then
-                    let
-                        ( updatedModel, updatedCmd ) =
-                            update GameEnded model
-                    in
-                        ( updatedModel
-                        , Cmd.batch
-                            [ updatedCmd
-                            , Ports.sendEndGameSignal ()
-                            ]
-                        )
+                    update GameEnded model
                 else
                     let
                         ( updatedModel, updatedCmd ) =
