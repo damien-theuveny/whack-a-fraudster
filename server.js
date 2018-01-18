@@ -101,6 +101,15 @@ wsServer.on('request', function(request) {
       };
     }
 
+    if(parsedData.type === "notifyAllLevel") {
+      for (var i=0; i < clients.length; i++) {
+        clients[i].sendUTF(JSON.stringify({
+          type: 'sharingLevel',
+          data: parsedData.data
+        }));
+      };
+    }
+
   });
 
   // user disconnected

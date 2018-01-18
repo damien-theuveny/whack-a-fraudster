@@ -24,6 +24,9 @@ port requestForScores : () -> Cmd msg
 port sendGridContents : String -> Cmd msg
 
 
+port sendLevel : Int -> Cmd msg
+
+
 port sendScores : (Json.Decode.Value -> msg) -> Sub msg
 
 
@@ -43,6 +46,9 @@ port updateClickBox : (Int -> msg) -> Sub msg
 
 
 port updateGridContents : (String -> msg) -> Sub msg
+
+
+port updateLevel : (Int -> msg) -> Sub msg
 
 
 port updateReadyCount : (Int -> msg) -> Sub msg

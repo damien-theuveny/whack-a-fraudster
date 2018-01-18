@@ -122,6 +122,7 @@ type Msg
     | Tick Time
     | UpdateConnections Int
     | UpdateMultiplayerGridContents (Result String (List ( Int, String )))
+    | UpdateMultiplayerLevel Int
     | UpdateReadyCount Int
 
 
@@ -274,9 +275,6 @@ update msg model =
             let
                 ( fraudsters, customers, superbadGuy ) =
                     model.score
-
-                _ =
-                    Debug.log "test" ( model.multiplayerMode.multiplayer, index )
 
                 cmd =
                     if model.multiplayerMode.multiplayer then
@@ -474,13 +472,22 @@ update msg model =
                 if gameEnded then
                     update GameEnded model
                 else
-                    update
-                        ApplyTick
-                        { model
-                            | lastTick = Just time
-                            , level = Just (scoreToLevel model.score)
-                            , tickCount = model.tickCount + 1
-                        }
+                    let
+                        ( updatedModel, updatedCmd ) =
+                            update
+                                ApplyTick
+                                { model
+                                    | lastTick = Just time
+                                    , level = Just (scoreToLevel model.score)
+                                    , tickCount = model.tickCount + 1
+                                }
+                    in
+                        ( updatedModel
+                        , Cmd.batch
+                            [ updatedCmd
+                            , Ports.sendLevel (levelToInt updatedModel.level)
+                            ]
+                        )
 
         UpdateConnections numberOfConnections ->
             let
@@ -524,6 +531,30 @@ update msg model =
         UpdateMultiplayerGridContents (Err error) ->
             ( model, Cmd.none )
 
+        UpdateMultiplayerLevel int ->
+            let
+                _ =
+                    Debug.log "test" int
+
+                convertedIntToLevel =
+                    case int of
+                        1 ->
+                            Just Level1
+
+                        2 ->
+                            Just Level2
+
+                        3 ->
+                            Just Level3
+
+                        4 ->
+                            Just Level4
+
+                        _ ->
+                            Nothing
+            in
+                ( { model | level = convertedIntToLevel }, Cmd.none )
+
         UpdateReadyCount readyClients ->
             let
                 { multiplayerMode } =
@@ -537,6 +568,27 @@ update msg model =
                   }
                 , Cmd.none
                 )
+
+
+levelToInt : Maybe Level -> Int
+levelToInt level =
+    case level of
+        Just level ->
+            case level of
+                Level1 ->
+                    1
+
+                Level2 ->
+                    2
+
+                Level3 ->
+                    3
+
+                Level4 ->
+                    4
+
+        Nothing ->
+            0
 
 
 createContentList : Int -> Int -> Int -> Bool -> List ContentType
@@ -881,6 +933,7 @@ subscriptions model =
                     Sub.batch
                         [ Ports.updateGridContents (decodeGridContents >> UpdateMultiplayerGridContents)
                         , Ports.updateClickBox ClickBox
+                        , Ports.updateLevel UpdateMultiplayerLevel
                         ]
                 else
                     Sub.batch

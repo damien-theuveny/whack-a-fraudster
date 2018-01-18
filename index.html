@@ -8,7 +8,7 @@
     var app = Elm.Main.fullscreen();
 
     // open connection
-    var connection = new WebSocket('ws://127.0.0.1:1337');
+    var connection = new WebSocket('ws://10.32.4.102:1337');
 
     if(!window.WebSocket) {
       // content.html($('<p>', { text:'Sorry, but your browser doesn\'t support WebSocket.'}));
@@ -53,8 +53,12 @@
         }
 
         if(parsedData.type === "sharingClickBox") {
-          console.log("parsedData clickbox", parsedData.data);
           app.ports.updateClickBox.send(parsedData.data);
+        }
+
+        if(parsedData.type === "sharingLevel") {
+          console.log("parsedData sharingLevel", parsedData.data);
+          app.ports.updateLevel.send(parsedData.data);
         }
 
       } else {
@@ -77,6 +81,11 @@
     app.ports.sendGridContents.subscribe(function(data) {
       // send grid contents to the server
       connection.send(JSON.stringify({type: "gridContents", data: data}));
+    });
+
+    app.ports.sendLevel.subscribe(function(data) {
+      // send grid contents to the server
+      connection.send(JSON.stringify({type: "notifyAllLevel", data: data}));
     });
 
     app.ports.sendPlayerName.subscribe(function(name) {
