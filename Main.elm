@@ -274,6 +274,15 @@ update msg model =
             let
                 ( fraudsters, customers, superbadGuy ) =
                     model.score
+
+                _ =
+                    Debug.log "test" ( model.multiplayerMode.multiplayer, index )
+
+                cmd =
+                    if model.multiplayerMode.multiplayer then
+                        Ports.clickBox index
+                    else
+                        Cmd.none
             in
                 case Dict.get index model.gridContents of
                     Just SuperFraudster ->
@@ -285,7 +294,7 @@ update msg model =
                                     (Maybe.map (\previousContentTypes -> Empty))
                                     model.gridContents
                           }
-                        , Cmd.none
+                        , cmd
                         )
 
                     Just Fraudster ->
@@ -297,7 +306,7 @@ update msg model =
                                     (Maybe.map (\previousContentTypes -> Empty))
                                     model.gridContents
                           }
-                        , Cmd.none
+                        , cmd
                         )
 
                     Just Client ->
@@ -309,7 +318,7 @@ update msg model =
                                     (Maybe.map (\previousContentTypes -> Empty))
                                     model.gridContents
                           }
-                        , Cmd.none
+                        , cmd
                         )
 
                     _ ->
@@ -509,16 +518,11 @@ update msg model =
                             (\( index, contentType ) ->
                                 ( index, (convertToContentType contentType) )
                             )
-                        |> Debug.log "test"
             in
                 ( { model | gridContents = (Dict.fromList mappedContents) }, Cmd.none )
 
         UpdateMultiplayerGridContents (Err error) ->
-            let
-                _ =
-                    Debug.log "fail" error
-            in
-                ( model, Cmd.none )
+            ( model, Cmd.none )
 
         UpdateReadyCount readyClients ->
             let
@@ -875,10 +879,14 @@ subscriptions model =
             Playing ->
                 if model.multiplayerMode.followingLead then
                     Sub.batch
-                        -- []
-                        [ Ports.updateGridContents (decodeGridContents >> UpdateMultiplayerGridContents) ]
+                        [ Ports.updateGridContents (decodeGridContents >> UpdateMultiplayerGridContents)
+                        , Ports.updateClickBox ClickBox
+                        ]
                 else
-                    Time.every interval Tick
+                    Sub.batch
+                        [ Time.every interval Tick
+                        , Ports.updateClickBox ClickBox
+                        ]
 
             Results ->
                 Ports.sendScores (decodePlayerScores >> ReceiveScores)
@@ -956,4 +964,3 @@ encodeGridContents gridContents =
             |> List.map (\( index, contentType ) -> ( (toString index), (Json.Encode.string (convertContentType contentType)) ))
             |> Json.Encode.object
             |> Json.Encode.encode 0
-            |> Debug.log "test"

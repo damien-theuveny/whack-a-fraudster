@@ -92,6 +92,15 @@ wsServer.on('request', function(request) {
       // console.log("gridContents", userName, index, clients.length);
     }
 
+    if(parsedData.type === "clickBox") {
+      for (var i=0; i < clients.length; i++) {
+        clients[i].sendUTF(JSON.stringify({
+          type: 'sharingClickBox',
+          data: parsedData.data
+        }));
+      };
+    }
+
   });
 
   // user disconnected

@@ -48,8 +48,13 @@
         }
 
         if(parsedData.type === "sharingGridContents") {
-          console.log("parsedData gridContents", parsedData.data);
+          // console.log("parsedData gridContents", parsedData.data);
           app.ports.updateGridContents.send(parsedData.data);
+        }
+
+        if(parsedData.type === "sharingClickBox") {
+          console.log("parsedData clickbox", parsedData.data);
+          app.ports.updateClickBox.send(parsedData.data);
         }
 
       } else {
@@ -60,6 +65,10 @@
     connection.onerror = function (error) {
       // an error occurred when sending/receiving data
     };
+
+    app.ports.clickBox.subscribe(function(data) {
+      connection.send(JSON.stringify({type: "clickBox", data: data}));
+    });
 
     app.ports.gameStartedByLead.subscribe(function() {
       connection.send(JSON.stringify({type: "notifyAllStart"}));
