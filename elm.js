@@ -10677,7 +10677,12 @@ var _user$project$Main$update = F2(
 											ctor: '::',
 											_0: _user$project$Ports$gameStartedByLead(
 												{ctor: '_Tuple0'}),
-											_1: {ctor: '[]'}
+											_1: {
+												ctor: '::',
+												_0: _user$project$Ports$sendGridContents(
+													_user$project$Main$encodeGridContents(updatedState.gridContents)),
+												_1: {ctor: '[]'}
+											}
 										}
 									}
 								})

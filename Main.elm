@@ -392,7 +392,6 @@ update msg model =
             ( model, Ports.storeScore ( model.playerName, translateScore model.score ) )
 
         StartGame ->
-            -- add OR single player mode to this if
             if model.multiplayerMode.playerIsLead || not model.multiplayerMode.multiplayer then
                 let
                     ( updatedState, updatedCmd ) =
@@ -411,6 +410,7 @@ update msg model =
                         [ updatedCmd
                         , Task.perform StartedTime Time.now
                         , Ports.gameStartedByLead ()
+                        , Ports.sendGridContents (encodeGridContents updatedState.gridContents)
                         ]
                     )
             else
