@@ -5,7 +5,75 @@
 </head>
 <body>
   <script>
-    var app = Elm.Main.fullscreen()
+    var app = Elm.Main.fullscreen();
+
+    // open connection
+    var connection = new WebSocket('ws://127.0.0.1:1337');
+
+    if(!window.WebSocket) {
+      // content.html($('<p>', { text:'Sorry, but your browser doesn\'t support WebSocket.'}));
+      // return;
+      console.log("websockets not supported");
+    }
+
+    connection.onopen = function () {
+      // connection is opened and ready to use
+      console.log("connection open");
+      app.ports.connectionOpenSignal.send(null);
+    };
+
+    connection.onmessage = function (message) {
+      // console.log("message received", message);
+      if(JSON.parse(message.data)) {
+        var parsedData = JSON.parse(message.data);
+
+        if(parsedData.type === "registration") {
+          console.log("parsedData", parsedData.data);
+          app.ports.registeredAsLeadPlayer.send(parsedData.data);
+        }
+
+        if(parsedData.type === "connections") {
+          console.log("parsedData", parsedData.data);
+          app.ports.connections.send(parsedData.data);
+        }
+
+        if(parsedData.type === "updateReadyList") {
+          console.log("parsedData", parsedData.data);
+          app.ports.updateReadyCount.send(parsedData.data);
+        }
+
+        if(parsedData.type === "startGame") {
+          console.log("parsedData", parsedData.data);
+          app.ports.startGame.send(null);
+        }
+
+        if(parsedData.type === "sharingGridContents") {
+          // console.log("parsedData gridContents", parsedData.data);
+          app.ports.updateGridContents.send(parsedData.data);
+        }
+
+      } else {
+        console.log("error parsing data");
+      }
+    };
+
+    connection.onerror = function (error) {
+      // an error occurred when sending/receiving data
+    };
+
+    app.ports.gameStartedByLead.subscribe(function() {
+      connection.send(JSON.stringify({type: "notifyAllStart"}));
+    });
+
+    app.ports.sendGridContents.subscribe(function(data) {
+      // send grid contents to the server
+      connection.send(JSON.stringify({type: "gridContents", data: data}));
+    });
+
+    app.ports.sendPlayerName.subscribe(function(name) {
+      //send the player name for registration
+      connection.send(JSON.stringify({type: "name", name: name}));
+    });
 
     app.ports.storeScore.subscribe(function(score) {
       var scores = JSON.parse(localStorage.getItem("scores"));
@@ -21,6 +89,11 @@
       var scores = localStorage.getItem("scores");
       app.ports.sendScores.send(JSON.parse(scores));
     });
+
+    app.ports.sendPlayerIsReady.subscribe(function() {
+      connection.send(JSON.stringify({type: "playerReady"}));
+    });
+
   </script>
 </body>
 </html>

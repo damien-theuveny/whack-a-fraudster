@@ -1,0 +1,19 @@
+{
+  "name": "whack-a-fraudster",
+  "version": "1.0.0",
+  "description": "Whack a mole style game themed around fraud",
+  "main": "index.html",
+  "scripts": {
+    "test": "tests"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/damien-theuveny/whack-a-fraudster.git"
+  },
+  "author": "damien-theuveny",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/damien-theuveny/whack-a-fraudster/issues"
+  },
+  "homepage": "https://github.com/damien-theuveny/whack-a-fraudster#readme"
+}

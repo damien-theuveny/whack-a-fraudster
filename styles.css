@@ -48,9 +48,32 @@ button {
   border-radius: 0;
 }
 
+button:disabled {
+  background-color: rgba(10,10,10, 0.2);
+}
+
 .welcome-container {
   height: 100%;
   text-align: center;
+  position: relative;
+}
+
+.multiplayer-overlay {
+  position: absolute;
+  height: 100%;
+  width: 100%;
+  background-color: rgba(0, 0, 0, 0.85);
+}
+
+.conections-container {
+  position: absolute;
+  left: 5px;
+  top: 5px;
+}
+
+.multiplayer-from-container {
+  position: relative;
+  top: 50%;
 }
 
 .grid-container {

@@ -6,6 +6,7 @@ import Html.Attributes exposing (..)
 import Html.Events exposing (..)
 import Html.Keyed
 import Json.Decode
+import Json.Encode
 import Ports
 import Random
 import Task
@@ -31,6 +32,14 @@ type alias Model =
     , gameState : GameState
     , gridContents : Dict Int ContentType
     , level : Maybe Level
+    , multiplayerMode :
+        { connectedClients : Maybe Int
+        , followingLead : Bool
+        , multiplayer : Bool
+        , playerIsLead : Bool
+        , readyClients : Int
+        , requestingPlayerName : Bool
+        }
     , playerName : String
     , playerScores : List PlayerScore
     , randomSequence : List Int
@@ -48,6 +57,14 @@ initialModel =
     , gameState = Welcome
     , gridContents = Dict.empty
     , level = Nothing
+    , multiplayerMode =
+        { connectedClients = Nothing
+        , followingLead = False
+        , multiplayer = False
+        , playerIsLead = False
+        , readyClients = 0
+        , requestingPlayerName = False
+        }
     , playerName = ""
     , playerScores = []
     , randomSequence = []
@@ -89,16 +106,24 @@ type ContentType
 
 
 type Msg
-    = ClickBox Int
+    = ApplyTick
     | ChangeName String
+    | ClickBox Int
     | GameEnded
-    | ApplyTick
+    | MultiplayerConnectionOpenned
+    | PlayerRegistered Bool
+    | PlaySinglePlayer
     | ReceiveScores (Result String (List PlayerScore))
     | Reset
+    | SendName
     | SendScore
     | StartGame
+    | StartMultiplayerGame
     | StartedTime Time
     | Tick Time
+    | UpdateConnections Int
+    | UpdateMultiplayerGridContents (Result String (List ( String, String )))
+    | UpdateReadyCount Int
 
 
 type alias PlayerScore =
@@ -239,7 +264,12 @@ update msg model =
                     adjustListsWithSuperBadGuy rows joinedLists superBadGuyRemains
                         |> Dict.fromList
             in
-            ( { model | gridContents = gridContents }, Cmd.none )
+            if model.multiplayerMode.playerIsLead && model.multiplayerMode.multiplayer then
+                ( { model | gridContents = gridContents }
+                , Ports.sendGridContents (encodeGridContents gridContents)
+                )
+            else
+                ( { model | gridContents = gridContents }, Cmd.none )
 
         ClickBox index ->
             let
@@ -292,6 +322,50 @@ update msg model =
         GameEnded ->
             ( { model | gameState = Results }, Ports.requestForScores () )
 
+        MultiplayerConnectionOpenned ->
+            let
+                { multiplayerMode } =
+                    model
+            in
+            ( { model
+                | multiplayerMode =
+                    { multiplayerMode
+                        | multiplayer = True
+                        , requestingPlayerName = True
+                    }
+              }
+            , Cmd.none
+            )
+
+        PlayerRegistered isLead ->
+            let
+                { multiplayerMode } =
+                    model
+            in
+            ( { model
+                | multiplayerMode =
+                    { multiplayerMode
+                        | playerIsLead = isLead
+                    }
+              }
+            , Cmd.none
+            )
+
+        PlaySinglePlayer ->
+            let
+                { multiplayerMode } =
+                    model
+            in
+            ( { model
+                | multiplayerMode =
+                    { multiplayerMode
+                        | multiplayer = False
+                        , requestingPlayerName = False
+                    }
+              }
+            , Cmd.none
+            )
+
         ReceiveScores (Ok scores) ->
             ( { model | playerScores = scores }, Cmd.none )
 
@@ -301,23 +375,66 @@ update msg model =
         Reset ->
             ( { model | gameState = Welcome }, Cmd.none )
 
+        SendName ->
+            let
+                { multiplayerMode } =
+                    model
+            in
+            ( { model
+                | multiplayerMode =
+                    { multiplayerMode
+                        | requestingPlayerName = False
+                    }
+              }
+            , Ports.sendPlayerName model.playerName
+            )
+
         SendScore ->
             ( model, Ports.storeScore ( model.playerName, translateScore model.score ) )
 
         StartGame ->
-            let
-                ( updatedState, updatedCmd ) =
-                    update
-                        ApplyTick
-                        { model
-                            | gameState = Playing
-                            , level = Just Level1
-                            , score = ( 0, 0, 0 )
-                            , tickCount = 0
-                            , superBadGuyTick = Nothing
-                        }
-            in
-            ( updatedState, Cmd.batch [ updatedCmd, Task.perform StartedTime Time.now ] )
+            -- add OR single player mode to this if
+            if model.multiplayerMode.playerIsLead || not model.multiplayerMode.multiplayer then
+                let
+                    ( updatedState, updatedCmd ) =
+                        update
+                            ApplyTick
+                            { model
+                                | gameState = Playing
+                                , level = Just Level1
+                                , score = ( 0, 0, 0 )
+                                , tickCount = 0
+                                , superBadGuyTick = Nothing
+                            }
+                in
+                ( updatedState
+                , Cmd.batch
+                    [ updatedCmd
+                    , Task.perform StartedTime Time.now
+                    , Ports.gameStartedByLead ()
+                    ]
+                )
+            else
+                ( model, Ports.sendPlayerIsReady () )
+
+        StartMultiplayerGame ->
+            if model.multiplayerMode.playerIsLead then
+                ( model, Cmd.none )
+            else
+                let
+                    { multiplayerMode } =
+                        model
+                in
+                ( { model
+                    | gameState = Playing
+                    , level = Just Level1
+                    , multiplayerMode = { multiplayerMode | followingLead = True }
+                    , score = ( 0, 0, 0 )
+                    , tickCount = 0
+                    , superBadGuyTick = Nothing
+                  }
+                , Cmd.none
+                )
 
         StartedTime time ->
             ( { model
@@ -356,6 +473,48 @@ update msg model =
                         , level = Just (scoreToLevel model.score)
                         , tickCount = model.tickCount + 1
                     }
+
+        UpdateConnections numberOfConnections ->
+            let
+                { multiplayerMode } =
+                    model
+            in
+            ( { model
+                | multiplayerMode =
+                    { multiplayerMode
+                        | connectedClients = Just numberOfConnections
+                    }
+              }
+            , Cmd.none
+            )
+
+        UpdateMultiplayerGridContents (Ok gridContents) ->
+            let
+                _ =
+                    Debug.log "test" gridContents
+            in
+            ( model, Cmd.none )
+
+        UpdateMultiplayerGridContents (Err error) ->
+            let
+                _ =
+                    Debug.log "fail" error
+            in
+            ( model, Cmd.none )
+
+        UpdateReadyCount readyClients ->
+            let
+                { multiplayerMode } =
+                    model
+            in
+            ( { model
+                | multiplayerMode =
+                    { multiplayerMode
+                        | readyClients = readyClients
+                    }
+              }
+            , Cmd.none
+            )
 
 
 createContentList : Int -> Int -> Int -> Bool -> List ContentType
@@ -402,7 +561,7 @@ view : Model -> Html Msg
 view model =
     case model.gameState of
         Welcome ->
-            welcomeView
+            welcomeView model
 
         Playing ->
             inGameView model
@@ -411,12 +570,59 @@ view model =
             resultsView model
 
 
-welcomeView : Html Msg
-welcomeView =
+welcomeView : Model -> Html Msg
+welcomeView model =
+    let
+        multiplayerNameEntry =
+            if model.multiplayerMode.requestingPlayerName then
+                [ div [ class "multiplayer-overlay" ]
+                    [ div [ class "multiplayer-from-container" ]
+                        [ input [ placeholder "Player name", onInput ChangeName ] []
+                        , button [ class "submit-name", onClick SendName ] [ text "Submit" ]
+                        ]
+                    , button [ class "play-singleplayer", onClick PlaySinglePlayer ] [ text "Single Player" ]
+                    ]
+                ]
+            else
+                []
+
+        connectionsContainer =
+            if model.multiplayerMode.multiplayer then
+                case model.multiplayerMode.connectedClients of
+                    Just numOfClients ->
+                        [ div [ class "conections-container" ] [ text (toString numOfClients ++ " Players Connected") ] ]
+
+                    Nothing ->
+                        []
+            else
+                []
+
+        startDisabled =
+            if model.multiplayerMode.multiplayer then
+                case model.multiplayerMode.connectedClients of
+                    Just numOfClients ->
+                        if numOfClients > 1 then
+                            model.multiplayerMode.playerIsLead && ((numOfClients - 1) /= model.multiplayerMode.readyClients)
+                        else
+                            True
+
+                    Nothing ->
+                        True
+            else
+                False
+    in
     div [ class "welcome-container" ]
-        [ h1 [] [ text "Welcome to Whack-a-Fraudster" ]
-        , button [ class "start", onClick StartGame ] [ text "Start" ]
-        ]
+        (multiplayerNameEntry
+            ++ connectionsContainer
+            ++ [ h1 [] [ text "Welcome to Whack-a-Fraudster" ]
+               , button
+                    [ class "start"
+                    , onClick StartGame
+                    , disabled startDisabled
+                    ]
+                    [ text "Start" ]
+               ]
+        )
 
 
 inGameView : Model -> Html Msg
@@ -639,14 +845,29 @@ subscriptions model =
                     Time.second * 0.75
     in
     case model.gameState of
+        Welcome ->
+            Sub.batch
+                [ Ports.connectionOpenSignal (always MultiplayerConnectionOpenned)
+                , Ports.registeredAsLeadPlayer PlayerRegistered
+                , Ports.connections UpdateConnections
+                , Ports.updateReadyCount UpdateReadyCount
+                , Ports.startGame (always StartMultiplayerGame)
+                ]
+
         Playing ->
-            Time.every interval Tick
+            if model.multiplayerMode.followingLead then
+                Sub.batch
+                    [ Ports.updateGridContents (decodeGridContents >> UpdateMultiplayerGridContents) ]
+            else
+                Time.every interval Tick
 
         Results ->
             Ports.sendScores (decodePlayerScores >> ReceiveScores)
 
-        _ ->
-            Sub.none
+
+
+-- _ ->
+--     Sub.none
 
 
 decodePlayerScores : Json.Decode.Value -> Result String (List PlayerScore)
@@ -660,3 +881,41 @@ decodePlayerScore =
     Json.Decode.map2 PlayerScore
         (Json.Decode.field "name" Json.Decode.string)
         (Json.Decode.field "score" Json.Decode.int)
+
+
+decodeGridContents : Json.Decode.Value -> Result String List ( String, String )
+decodeGridContents =
+    Json.Decode.decodeValue
+        Json.Decode.list decodeGridItem
+
+
+
+decodeGridItem : Json.Decode.Decoder (Int, ContentType)
+decodeGridItem =
+
+
+encodeGridContents : Dict Int ContentType -> String
+encodeGridContents gridContents =
+    Json.Encode.encode 0
+        (Json.Encode.list (List.map encodeGridItem (gridContents |> Dict.toList)))
+
+
+encodeGridItem : ( Int, ContentType ) -> Json.Encode.Value
+encodeGridItem ( index, contentType ) =
+    let
+        convertContentType contentType =
+            case contentType of
+                Empty ->
+                    "Empty"
+
+                Fraudster ->
+                    "Fraudster"
+
+                SuperFraudster ->
+                    "SuperFraudster"
+
+                Client ->
+                    "Client"
+    in
+    Json.Encode.object
+        [ ( toString index, Json.Encode.string (convertContentType contentType) ) ]
