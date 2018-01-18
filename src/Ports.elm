@@ -24,7 +24,7 @@ port sendGridContents : String -> Cmd msg
 port sendScores : (Json.Decode.Value -> msg) -> Sub msg
 
 
-port updateGridContents : (Json.Decode.Value -> msg) -> Sub msg
+port updateGridContents : (String -> msg) -> Sub msg
 
 
 port sendPlayerIsReady : () -> Cmd msg

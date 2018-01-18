@@ -48,7 +48,7 @@
         }
 
         if(parsedData.type === "sharingGridContents") {
-          // console.log("parsedData gridContents", parsedData.data);
+          console.log("parsedData gridContents", parsedData.data);
           app.ports.updateGridContents.send(parsedData.data);
         }
 
