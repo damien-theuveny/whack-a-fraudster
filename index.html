@@ -32,6 +32,14 @@
           app.ports.registeredAsLeadPlayer.send(parsedData.data);
         }
 
+        if(parsedData.type === "clientNames") {
+          app.ports.clientNames.send(parsedData.data);
+        }
+
+        if(parsedData.type === "invalidName") {
+          app.ports.invalidName.send(null);
+        }
+
         if(parsedData.type === "connections") {
           console.log("parsedData", parsedData.data);
           app.ports.connections.send(parsedData.data);

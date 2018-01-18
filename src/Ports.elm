@@ -12,10 +12,16 @@ port connections : (Int -> msg) -> Sub msg
 port clickBox : Int -> Cmd msg
 
 
+port clientNames : (Json.Decode.Value -> msg) -> Sub msg
+
+
 port gameStartedByLead : () -> Cmd msg
 
 
-port registeredAsLeadPlayer : (Bool -> msg) -> Sub msg
+port invalidName : (() -> msg) -> Sub msg
+
+
+port registeredAsLeadPlayer : (Json.Decode.Value -> msg) -> Sub msg
 
 
 port requestForScores : () -> Cmd msg

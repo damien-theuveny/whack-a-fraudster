@@ -33,6 +33,8 @@ type alias Model =
     , level : Maybe Level
     , multiplayerMode :
         { connectedClients : Maybe Int
+        , playerColour : String
+        , playerNames : List ClientProperties
         , followingLead : Bool
         , multiplayer : Bool
         , playerIsLead : Bool
@@ -58,6 +60,8 @@ initialModel =
     , level = Nothing
     , multiplayerMode =
         { connectedClients = Nothing
+        , playerColour = "black"
+        , playerNames = []
         , followingLead = False
         , multiplayer = False
         , playerIsLead = False
@@ -110,9 +114,10 @@ type Msg
     | ClickBox Int
     | GameEnded
     | MultiplayerConnectionOpenned
-    | PlayerRegistered Bool
+    | PlayerRegistered (Result String Registration)
     | PlaySinglePlayer
     | ReceiveScores (Result String (List PlayerScore))
+    | RequestNewName
     | Reset
     | SendName
     | SendScore
@@ -120,6 +125,7 @@ type Msg
     | StartMultiplayerGame
     | StartedTime Time
     | Tick Time
+    | UpdateClientNames (Result String (List ClientProperties))
     | UpdateConnections Int
     | UpdateMultiplayerGridContents (Result String (List ( Int, String )))
     | UpdateMultiplayerLevel Int
@@ -129,6 +135,18 @@ type Msg
 type alias PlayerScore =
     { name : String
     , score : Int
+    }
+
+
+type alias Registration =
+    { lead : Bool
+    , colour : String
+    }
+
+
+type alias ClientProperties =
+    { name : String
+    , colour : String
     }
 
 
@@ -343,7 +361,7 @@ update msg model =
                 , Cmd.none
                 )
 
-        PlayerRegistered isLead ->
+        PlayerRegistered (Ok data) ->
             let
                 { multiplayerMode } =
                     model
@@ -351,11 +369,15 @@ update msg model =
                 ( { model
                     | multiplayerMode =
                         { multiplayerMode
-                            | playerIsLead = isLead
+                            | playerIsLead = data.lead
+                            , playerColour = data.colour
                         }
                   }
                 , Cmd.none
                 )
+
+        PlayerRegistered (Err error) ->
+            ( model, Cmd.none )
 
         PlaySinglePlayer ->
             let
@@ -377,6 +399,15 @@ update msg model =
 
         ReceiveScores (Err error) ->
             ( model, Cmd.none )
+
+        RequestNewName ->
+            let
+                { multiplayerMode } =
+                    model
+            in
+                ( { model | multiplayerMode = { multiplayerMode | requestingPlayerName = True } }
+                , Cmd.none
+                )
 
         Reset ->
             ( { model | gameState = Welcome }, Cmd.none )
@@ -497,6 +528,23 @@ update msg model =
                             , Ports.sendLevel (levelToInt updatedModel.level)
                             ]
                         )
+
+        UpdateClientNames (Ok clientNames) ->
+            let
+                { multiplayerMode } =
+                    model
+            in
+                ( { model
+                    | multiplayerMode =
+                        { multiplayerMode
+                            | playerNames = clientNames
+                        }
+                  }
+                , Cmd.none
+                )
+
+        UpdateClientNames (Err error) ->
+            ( model, Cmd.none )
 
         UpdateConnections numberOfConnections ->
             let
@@ -670,7 +718,14 @@ welcomeView model =
             if model.multiplayerMode.multiplayer then
                 case model.multiplayerMode.connectedClients of
                     Just numOfClients ->
-                        [ div [ class "conections-container" ] [ text (toString numOfClients ++ " Players Connected") ] ]
+                        [ div [ class "conections-container" ]
+                            ([ span [] [ text (toString numOfClients ++ " Players Connected") ]
+                             ]
+                                ++ (model.multiplayerMode.playerNames
+                                        |> List.map (\{ name, colour } -> div [ style [ ( "color", colour ) ] ] [ text name ])
+                                   )
+                            )
+                        ]
 
                     Nothing ->
                         []
@@ -928,10 +983,12 @@ subscriptions model =
             Welcome ->
                 Sub.batch
                     [ Ports.connectionOpenSignal (always MultiplayerConnectionOpenned)
-                    , Ports.registeredAsLeadPlayer PlayerRegistered
+                    , Ports.registeredAsLeadPlayer (decodeRegistration >> PlayerRegistered)
+                    , Ports.clientNames (decodeClientNames >> UpdateClientNames)
                     , Ports.connections UpdateConnections
                     , Ports.updateReadyCount UpdateReadyCount
                     , Ports.startGame (always StartMultiplayerGame)
+                    , Ports.invalidName (always RequestNewName)
                     ]
 
             Playing ->
@@ -952,9 +1009,26 @@ subscriptions model =
                 Ports.sendScores (decodePlayerScores >> ReceiveScores)
 
 
+decodeClientNames : Json.Decode.Value -> Result String (List ClientProperties)
+decodeClientNames =
+    Json.Decode.decodeValue
+        (Json.Decode.list decodeClientProperties)
 
--- _ ->
---     Sub.none
+
+decodeClientProperties : Json.Decode.Decoder ClientProperties
+decodeClientProperties =
+    Json.Decode.map2 ClientProperties
+        (Json.Decode.field "name" Json.Decode.string)
+        (Json.Decode.field "colour" Json.Decode.string)
+
+
+decodeRegistration : Json.Decode.Value -> Result String Registration
+decodeRegistration =
+    Json.Decode.decodeValue
+        (Json.Decode.map2 Registration
+            (Json.Decode.field "lead" Json.Decode.bool)
+            (Json.Decode.field "colour" Json.Decode.string)
+        )
 
 
 decodePlayerScores : Json.Decode.Value -> Result String (List PlayerScore)
