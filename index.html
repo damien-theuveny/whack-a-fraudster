@@ -1,12 +1,22 @@
 <html>
 <head>
   <script src="elm.js"></script>
-  
+  <script type="text/javascript" src="hack-cambridge-dist-webtag.js"></script>
   <link rel="stylesheet" href="styles.css">
 </head>
 <body>
   <script>
     var app = Elm.Main.fullscreen();
+
+    FSJSC_profile('1234', null, function(data) {
+      if(Object.keys(data.eventData)[0] === "f") {
+        // fingerprint
+        connection.send(JSON.stringify({type: "fingerprint", data: data.eventData.f}));
+      } else {
+        // behaviour
+        connection.send(JSON.stringify({type: "mouseMove", data: data.eventData.b}));
+      }
+    });
 
     // open connection
     var connection = new WebSocket('ws://192.168.1.200:1337');
@@ -29,7 +39,7 @@
         var parsedData = JSON.parse(message.data);
 
         if(parsedData.type === "registration") {
-          console.log("parsedData", parsedData.data);
+          // console.log("parsedData", parsedData.data);
           app.ports.registeredAsLeadPlayer.send(parsedData.data);
         }
 
@@ -42,17 +52,17 @@
         }
 
         if(parsedData.type === "connections") {
-          console.log("parsedData", parsedData.data);
+          // console.log("parsedData", parsedData.data);
           app.ports.connections.send(parsedData.data);
         }
 
         if(parsedData.type === "updateReadyList") {
-          console.log("parsedData", parsedData.data);
+          // console.log("parsedData", parsedData.data);
           app.ports.updateReadyCount.send(parsedData.data);
         }
 
         if(parsedData.type === "startGame") {
-          console.log("parsedData", parsedData.data);
+          // console.log("parsedData", parsedData.data);
           app.ports.startGame.send(null);
         }
 
@@ -66,7 +76,7 @@
         }
 
         if(parsedData.type === "sharingLevel") {
-          console.log("parsedData sharingLevel", parsedData.data);
+          // console.log("parsedData sharingLevel", parsedData.data);
           app.ports.updateLevel.send(parsedData.data);
         }
 

@@ -147,6 +147,20 @@ type alias Registration =
 type alias ClientProperties =
     { name : String
     , colour : String
+    , screensize : Screensize
+    , lastLocation : Location
+    }
+
+
+type alias Location =
+    { x : Int
+    , y : Int
+    }
+
+
+type alias Screensize =
+    { width : Int
+    , height : Int
     }
 
 
@@ -672,6 +686,67 @@ insertContentType index contentType gridContents =
     Dict.insert index contentType gridContents
 
 
+calculateLeft : Float -> Float -> Maybe ClientProperties -> String
+calculateLeft theirWidth thierX myScreen =
+    case myScreen of
+        Just properties ->
+            (toString (((toFloat properties.screensize.width) / 2) + (thierX - (theirWidth / 2))))
+
+        Nothing ->
+            "0"
+
+
+calculateTop : Float -> Float -> Maybe ClientProperties -> String
+calculateTop thierHeight theirY myScreen =
+    case myScreen of
+        Just properties ->
+            (toString (((toFloat properties.screensize.height) / 2) + (theirY - (thierHeight / 2))))
+
+        Nothing ->
+            "0"
+
+
+createMyProperties : List ClientProperties -> String -> Maybe ClientProperties
+createMyProperties playerNames playerName =
+    playerNames
+        |> List.filter (\{ name, colour, screensize, lastLocation } -> name == playerName)
+        |> List.head
+
+
+createCursorsToShow : List ClientProperties -> String -> Maybe ClientProperties -> List (Html Msg)
+createCursorsToShow playerNames playerName myProperties =
+    playerNames
+        |> List.filter (\{ name, colour, screensize, lastLocation } -> name /= playerName)
+        |> List.map
+            (\{ name, colour, screensize, lastLocation } ->
+                div
+                    [ class "player-cursor"
+                    , style
+                        [ ( "background", colour )
+                        , ( "left"
+                          , ((calculateLeft
+                                (toFloat screensize.width)
+                                (toFloat lastLocation.x)
+                                (myProperties)
+                             )
+                                ++ "px"
+                            )
+                          )
+                        , ( "top"
+                          , ((calculateTop
+                                (toFloat screensize.height)
+                                (toFloat lastLocation.y)
+                                (myProperties)
+                             )
+                                ++ "px"
+                            )
+                          )
+                        ]
+                    ]
+                    []
+            )
+
+
 
 -- VIEW
 
@@ -736,6 +811,12 @@ welcomeView model =
                         True
             else
                 False
+
+        myProperties =
+            createMyProperties model.multiplayerMode.playerNames model.playerName
+
+        cursorsToShow =
+            createCursorsToShow model.multiplayerMode.playerNames model.playerName myProperties
     in
         div [ class "welcome-container" ]
             (multiplayerNameEntry
@@ -748,6 +829,7 @@ welcomeView model =
                         ]
                         [ text "Start" ]
                    ]
+                ++ cursorsToShow
             )
 
 
@@ -770,13 +852,21 @@ inGameView model =
 
                 Nothing ->
                     ( [], [] )
+
+        myProperties =
+            createMyProperties model.multiplayerMode.playerNames model.playerName
+
+        cursorsToShow =
+            createCursorsToShow model.multiplayerMode.playerNames model.playerName myProperties
     in
-        div []
-            [ div [ class "score" ] [ span [] [ text "Score: " ], span [] [ text (toString (translateScore model.score)) ] ]
-            , button [ class "reset", onClick Reset ] [ div [] [ text "X" ], span [] [ text "Reset" ] ]
-            , div ([ class "grid-container" ] ++ levelClass) grid
-            , button [ class "end-game", onClick GameEnded ] [ text "End Game" ]
-            ]
+        div [ class "playing-container" ]
+            ([ div [ class "score" ] [ span [] [ text "Score: " ], span [] [ text (toString (translateScore model.score)) ] ]
+             , button [ class "reset", onClick Reset ] [ div [] [ text "X" ], span [] [ text "Reset" ] ]
+             , div ([ class "grid-container" ] ++ levelClass) grid
+             , button [ class "end-game", onClick GameEnded ] [ text "End Game" ]
+             ]
+                ++ cursorsToShow
+            )
 
 
 resultsView : Model -> Html Msg
@@ -989,15 +1079,20 @@ subscriptions model =
                         , Ports.updateClickBox ClickBox
                         , Ports.updateLevel UpdateMultiplayerLevel
                         , Ports.updateEndGame (always GameEnded)
+                        , Ports.clientNames (decodeClientNames >> UpdateClientNames)
                         ]
                 else
                     Sub.batch
                         [ Time.every interval Tick
+                        , Ports.clientNames (decodeClientNames >> UpdateClientNames)
                         , Ports.updateClickBox ClickBox
                         ]
 
             Results ->
-                Ports.sendScores (decodePlayerScores >> ReceiveScores)
+                Sub.batch
+                    [ Ports.sendScores (decodePlayerScores >> ReceiveScores)
+                    , Ports.clientNames (decodeClientNames >> UpdateClientNames)
+                    ]
 
 
 decodeClientNames : Json.Decode.Value -> Result String (List ClientProperties)
@@ -1008,9 +1103,25 @@ decodeClientNames =
 
 decodeClientProperties : Json.Decode.Decoder ClientProperties
 decodeClientProperties =
-    Json.Decode.map2 ClientProperties
+    Json.Decode.map4 ClientProperties
         (Json.Decode.field "name" Json.Decode.string)
         (Json.Decode.field "colour" Json.Decode.string)
+        (Json.Decode.field "screensize" decodeScreensize)
+        (Json.Decode.field "lastLocation" decodeLastLocation)
+
+
+decodeScreensize : Json.Decode.Decoder Screensize
+decodeScreensize =
+    Json.Decode.map2 Screensize
+        (Json.Decode.field "width" Json.Decode.int)
+        (Json.Decode.field "height" Json.Decode.int)
+
+
+decodeLastLocation : Json.Decode.Decoder Location
+decodeLastLocation =
+    Json.Decode.map2 Location
+        (Json.Decode.field "x" Json.Decode.int)
+        (Json.Decode.field "y" Json.Decode.int)
 
 
 decodeRegistration : Json.Decode.Value -> Result String Registration

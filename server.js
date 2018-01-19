@@ -41,6 +41,8 @@ wsServer.on('request', function(request) {
   var index = clients.push(connection) - 1;
   var userName = false;
   var userColor = false;
+  var screensize = false;
+  var lastLocation;
   clientNames.push("anonymous");
   console.log((new Date()) + ' Connection accepted.');
 
@@ -64,7 +66,7 @@ wsServer.on('request', function(request) {
       } else {
         userName = parsedData.name;
         userColor = colours.shift();
-        clientNames[index] = { name: parsedData.name, colour: userColor };
+        clientNames[index] = { name: parsedData.name, colour: userColor, screensize: screensize, lastLocation: lastLocation };
         connection.sendUTF(JSON.stringify({
           type: 'registration',
           data: {
@@ -79,6 +81,33 @@ wsServer.on('request', function(request) {
           }));
         };
         console.log("registration", userName, index, clients.length, clientNames);
+      }
+    }
+
+    if(parsedData.type === "fingerprint") {
+      var fingerprint = JSON.parse(parsedData.data)["9"]["3"].split("x");
+      screensize = { width: parseInt(fingerprint[0]), height: parseInt(fingerprint[1])};
+      // console.log(clientNames);
+    }
+
+    if(parsedData.type === "mouseMove") {
+      var movementData = JSON.parse(parsedData.data)[0];
+      if(typeof lastLocation === "undefined") {
+        lastLocation = { x: movementData.x, y: movementData.y };
+      } else {
+        lastLocation = { x: (lastLocation.x + movementData.x), y: (lastLocation.y + movementData.y)}
+      }
+      if(typeof clientNames[index].lastLocation !== "undefined") {
+        clientNames[index].lastLocation = lastLocation;
+        // console.log(clientNames[index], lastLocation);
+        for (var i=0; i < clients.length; i++) {
+          if(i !== index) {
+            clients[i].sendUTF(JSON.stringify({
+              type: 'clientNames',
+              data: clientNames
+            }));
+          }
+        };
       }
     }
 

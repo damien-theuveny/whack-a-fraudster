@@ -58,6 +58,14 @@ button:disabled {
   position: relative;
 }
 
+.player-cursor {
+  width: 10px;
+  height: 10px;
+  position: absolute;
+  border-radius: 20px;
+  opacity: 0.6;
+}
+
 .multiplayer-overlay {
   position: absolute;
   height: 100%;
@@ -74,6 +82,10 @@ button:disabled {
 .multiplayer-from-container {
   position: relative;
   top: 50%;
+}
+
+.playing-container {
+  height: 100%;
 }
 
 .grid-container {
@@ -131,8 +143,9 @@ button:disabled {
 }
 
 .score {
+  position: relative;
+  top: 20px;
   text-align: center;
-  margin-top: 20px;
 }
 
 .reset {
