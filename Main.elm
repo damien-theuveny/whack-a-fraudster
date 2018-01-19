@@ -878,7 +878,7 @@ resultsView model =
         ( fraudsters, customers, superbadGuy ) =
             model.score
     in
-        div []
+        div [ class "results-container" ]
             [ div [ class "score" ] [ span [] [ text "Score: " ], span [] [ text (toString (translateScore model.score)) ] ]
             , button [ class "reset", onClick Reset ] [ div [] [ text "X" ], span [] [ text "Reset" ] ]
             , div [ class "result-graph" ]

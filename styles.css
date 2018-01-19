@@ -37,25 +37,28 @@ body {
   margin: 0;
   font-family: "Titillium Web";
   height: 100%;
+  color: #fff;
+  text-shadow: 1px 1px #000;
 }
 
 button {
   padding: 5px 10px;
   font-family: "Titillium Web";
-  background-color: rgb(10,10,10);
-  color: rgba(240,240,240,1);
+  background-color: rgb(255,255,255);
+  color: rgba(0,0,0,1);
   border: none;
   border-radius: 0;
 }
 
 button:disabled {
-  background-color: rgba(10,10,10, 0.2);
+  background-color: rgba(255,255,255, 0.2);
 }
 
 .welcome-container {
   height: 100%;
   text-align: center;
   position: relative;
+  background-image: url("bg.jpg");
 }
 
 .player-cursor {
@@ -64,6 +67,7 @@ button:disabled {
   position: absolute;
   border-radius: 20px;
   opacity: 0.6;
+  border: 1px solid #fff;
 }
 
 .multiplayer-overlay {
@@ -77,6 +81,8 @@ button:disabled {
   position: absolute;
   left: 5px;
   top: 5px;
+  padding: 12px;
+  background: rgba(10,10,10,0.8);
 }
 
 .multiplayer-from-container {
@@ -86,12 +92,13 @@ button:disabled {
 
 .playing-container {
   height: 100%;
+  background-image: url("bg.jpg");
 }
 
 .grid-container {
   position: absolute;
   vertical-align: middle;
-  background: rgba(0,0,0,0.2);
+  background: rgba(0,0,0,0.75);
 }
 
 .grid-container.grid-container--level1 {
@@ -127,7 +134,7 @@ button:disabled {
 }
 
 .grid-logo {
-  background: #fff;
+  background-image: url("favicon.png");
 }
 
 .client {
@@ -135,11 +142,16 @@ button:disabled {
 }
 
 .fraudster {
+  background-image: url("373611.png");
+  background-size: contain;
   background-color: rgba(255, 0, 0, 0.5);
 }
 
 .super-fraudster {
   background-color: rgba(255, 0, 0, 0.8);
+  background-image: url("373596.png");
+  background-position: bottom;
+  background-size: cover;
 }
 
 .score {
@@ -160,6 +172,11 @@ button:disabled {
   bottom: 20px;
   width: 80px;
   left: calc(50% - 40px);
+}
+
+.results-container {
+  height: 100%;
+  background-image: url("bg.jpg");
 }
 
 .result-graph {
@@ -183,12 +200,12 @@ button:disabled {
 .result-graph .seperator {
   margin: 0 5px;
   width: 2px;
-  background-color: #000;
+  background-color: #fff;
 }
 
 .result-graph .bar {
   height: 20px;
-  background-color: #000;
+  background-color: #fff;
 }
 
 .playing-time {

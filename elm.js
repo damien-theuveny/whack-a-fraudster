@@ -10298,7 +10298,11 @@ var _user$project$Main$resultsView = function (model) {
 	var superbadGuyPercentage = _p67._2;
 	return A2(
 		_elm_lang$html$Html$div,
-		{ctor: '[]'},
+		{
+			ctor: '::',
+			_0: _elm_lang$html$Html_Attributes$class('results-container'),
+			_1: {ctor: '[]'}
+		},
 		{
 			ctor: '::',
 			_0: A2(

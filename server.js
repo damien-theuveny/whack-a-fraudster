@@ -97,7 +97,7 @@ wsServer.on('request', function(request) {
       } else {
         lastLocation = { x: (lastLocation.x + movementData.x), y: (lastLocation.y + movementData.y)}
       }
-      if(typeof clientNames[index].lastLocation !== "undefined") {
+      if(clientNames[index] && typeof clientNames[index].lastLocation !== "undefined") {
         clientNames[index].lastLocation = lastLocation;
         // console.log(clientNames[index], lastLocation);
         for (var i=0; i < clients.length; i++) {
