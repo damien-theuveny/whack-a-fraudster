@@ -879,9 +879,9 @@ resultsView model =
             model.score
     in
         div [ class "results-container" ]
-            [ div [ class "score" ] [ span [] [ text "Score: " ], span [] [ text (toString (translateScore model.score)) ] ]
-            , button [ class "reset", onClick Reset ] [ div [] [ text "X" ], span [] [ text "Reset" ] ]
-            , div [ class "result-graph" ]
+            ([ div [ class "score" ] [ span [] [ text "Score: " ], span [] [ text (toString (translateScore model.score)) ] ]
+             , button [ class "reset", onClick Reset ] [ div [] [ text "X" ], span [] [ text "Reset" ] ]
+             , div [ class "result-graph" ]
                 [ div [ class "left-side" ]
                     [ div [ class "label" ] [ text "Fraudsters" ]
                     , div
@@ -912,15 +912,20 @@ resultsView model =
                         []
                     ]
                 ]
-            , div [ class "playing-time" ] [ text (calculatePlayingTime model.lastTick model.startedTime) ]
-            , div [ class "scoreing-container" ]
-                [ div [] [ text "Submit your score" ]
-                , input [ placeholder "Player name", onInput ChangeName ] []
-                , button [ class "submit-score", onClick SendScore ] [ text "Submit" ]
-                , div [ class "player-scores-label" ] [ text "Player scoreboard" ]
-                , div [ class "player-scores" ] (playerScoreDisplay model.playerScores)
-                ]
-            ]
+             , div [ class "playing-time" ] [ text (calculatePlayingTime model.lastTick model.startedTime) ]
+             ]
+                ++ if model.multiplayerMode.multiplayer then
+                    []
+                   else
+                    [ div [ class "scoreing-container" ]
+                        [ div [] [ text "Submit your score" ]
+                        , input [ placeholder "Player name", onInput ChangeName ] []
+                        , button [ class "submit-score", onClick SendScore ] [ text "Submit" ]
+                        , div [ class "player-scores-label" ] [ text "Player scoreboard" ]
+                        , div [ class "player-scores" ] (playerScoreDisplay model.playerScores)
+                        ]
+                    ]
+            )
 
 
 playerScoreDisplay : List PlayerScore -> List (Html Msg)
