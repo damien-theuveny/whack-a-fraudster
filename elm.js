@@ -9077,6 +9077,11 @@ var _user$project$Ports$requestForScores = _elm_lang$core$Native_Platform.outgoi
 	function (v) {
 		return null;
 	});
+var _user$project$Ports$resetServer = _elm_lang$core$Native_Platform.outgoingPort(
+	'resetServer',
+	function (v) {
+		return null;
+	});
 var _user$project$Ports$sendEndGameSignal = _elm_lang$core$Native_Platform.outgoingPort(
 	'sendEndGameSignal',
 	function (v) {

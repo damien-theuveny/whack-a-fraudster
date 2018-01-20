@@ -500,16 +500,16 @@ update msg model =
                 gameEnded =
                     case ( scoreToLevel model.score, model.startedTime ) of
                         ( Level1, Just startedTime ) ->
-                            Time.inSeconds (time - startedTime) > 20
+                            Time.inSeconds (time - startedTime) > 15
 
                         ( Level2, Just startedTime ) ->
-                            Time.inSeconds (time - startedTime) > 40
+                            Time.inSeconds (time - startedTime) > 30
 
                         ( Level3, Just startedTime ) ->
-                            Time.inSeconds (time - startedTime) > 60
+                            Time.inSeconds (time - startedTime) > 45
 
                         ( Level4, Just startedTime ) ->
-                            Time.inSeconds (time - startedTime) > 80
+                            Time.inSeconds (time - startedTime) > 60
 
                         _ ->
                             False
@@ -1060,10 +1060,10 @@ subscriptions model =
                     Time.second * 1.5
 
                 Just Level3 ->
-                    Time.second * 1
+                    Time.second * 1.25
 
                 _ ->
-                    Time.second * 0.75
+                    Time.second * 1
     in
         case model.gameState of
             Welcome ->

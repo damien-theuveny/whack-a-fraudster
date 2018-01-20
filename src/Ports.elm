@@ -27,6 +27,9 @@ port registeredAsLeadPlayer : (Json.Decode.Value -> msg) -> Sub msg
 port requestForScores : () -> Cmd msg
 
 
+port resetServer : () -> Cmd msg
+
+
 port sendEndGameSignal : () -> Cmd msg
 
 

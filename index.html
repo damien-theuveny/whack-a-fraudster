@@ -1,5 +1,6 @@
 <html>
 <head>
+  <title>Whack a Fraudster</title>
   <script src="elm.js"></script>
   <script type="text/javascript" src="hack-cambridge-dist-webtag.js"></script>
   <link rel="stylesheet" href="styles.css">
@@ -100,6 +101,10 @@
     app.ports.gameStartedByLead.subscribe(function() {
       connection.send(JSON.stringify({type: "notifyAllStart"}));
     });
+
+    // app.ports.resetServer.subscribe(function() {
+    //   connection.send(JSON.stringify({type: "resetServer"}));
+    // });
 
     app.ports.sendEndGameSignal.subscribe(function() {
       connection.send(JSON.stringify({type: "endGameSignal"}));

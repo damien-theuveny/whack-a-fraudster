@@ -5,6 +5,59 @@ process.title = 'whack-a-fraudster';
 var webSocketsServerPort = 1337;
 var WebSocketServer = require('websocket').server;
 var http = require('http');
+var express = require('express');
+var app = express();
+
+app.set('port', 3000);
+
+app.get('/', function (req,res) {
+  res.sendFile(__dirname + '/index.html');
+});
+
+app.get('/elm.js', function (req,res) {
+  res.sendFile(__dirname + '/elm.js');
+});
+
+app.get('/styles.css', function (req,res) {
+  res.sendFile(__dirname + '/styles.css');
+});
+
+app.get('/hack-cambridge-dist-webtag.js', function (req,res) {
+  res.sendFile(__dirname + '/hack-cambridge-dist-webtag.js');
+});
+
+app.get('/fonts/TitilliumWeb-Regular.ttf', function (req,res) {
+  res.sendFile(__dirname + '/fonts/TitilliumWeb-Regular.ttf');
+});
+
+app.get('/fonts/TitilliumWeb-Bold.ttf', function (req,res) {
+  res.sendFile(__dirname + '/fonts/TitilliumWeb-Bold.ttf');
+});
+
+app.get('/bg.jpg', function (req,res) {
+  res.sendFile(__dirname + '/bg.jpg');
+});
+
+app.get('/favicon.png', function (req,res) {
+  res.sendFile(__dirname + '/favicon.png');
+});
+
+app.get('/favicon.ico', function (req,res) {
+  res.sendFile(__dirname + '/favicon.png');
+});
+
+app.get('/373611.png', function (req,res) {
+  res.sendFile(__dirname + '/373611.png');
+});
+
+app.get('/373596.png', function (req,res) {
+  res.sendFile(__dirname + '/373596.png');
+});
+
+app.get('/373720.png', function (req,res) {
+  res.sendFile(__dirname + '/373720.png');
+});
+
 
 var history = [];
 var clients = [];
@@ -88,6 +141,14 @@ wsServer.on('request', function(request) {
       var fingerprint = JSON.parse(parsedData.data)["9"]["3"].split("x");
       screensize = { width: parseInt(fingerprint[0]), height: parseInt(fingerprint[1])};
       // console.log(clientNames);
+    }
+
+    if(parsedData.type === "resetServer") {
+      clients = [];
+      clientNames = [];
+      readyList = [];
+
+      colours = ['red', 'green', 'blue', 'magenta', 'purple', 'plum', 'orange'];
     }
 
     if(parsedData.type === "mouseMove") {
@@ -189,3 +250,7 @@ wsServer.on('request', function(request) {
     };
   });
 });
+
+app.listen(3000, function() {
+  console.log("Listening on port 3000");
+})
