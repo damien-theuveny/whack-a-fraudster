@@ -3,24 +3,17 @@
   <title>Whack a Fraudster</title>
   <script src="elm.js"></script>
   <script type="text/javascript" src="hack-cambridge-dist-webtag.js"></script>
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=0">
   <link rel="stylesheet" href="styles.css">
 </head>
 <body>
   <script>
     var app = Elm.Main.fullscreen();
-
-    FSJSC_profile('1234', null, function(data) {
-      if(Object.keys(data.eventData)[0] === "f") {
-        // fingerprint
-        connection.send(JSON.stringify({type: "fingerprint", data: data.eventData.f}));
-      } else {
-        // behaviour
-        connection.send(JSON.stringify({type: "mouseMove", data: data.eventData.b}));
-      }
-    });
+    var fingerprint;
+    var firstLocation;
 
     // open connection
-    var connection = new WebSocket('ws://192.168.1.200:1337');
+    var connection = new WebSocket('ws://192.168.1.146:1337');
 
     if(!window.WebSocket) {
       // content.html($('<p>', { text:'Sorry, but your browser doesn\'t support WebSocket.'}));
@@ -31,6 +24,20 @@
     connection.onopen = function () {
       // connection is opened and ready to use
       console.log("connection open");
+      FSJSC_profile('1234', null, function(data) {
+        if(Object.keys(data.eventData)[0] === "f") {
+          // fingerprint
+          fingerprint = data.eventData.f;
+          connection.send(JSON.stringify({type: "fingerprint", data: data.eventData.f}));
+        } else {
+          // behaviour
+          if(typeof firstLocation === "undefined") {
+            firstLocation = data.eventData.b;
+          }
+          connection.send(JSON.stringify({type: "mouseMove", data: data.eventData.b}));
+        }
+      });
+
       app.ports.connectionOpenSignal.send(null);
     };
 
@@ -102,10 +109,6 @@
       connection.send(JSON.stringify({type: "notifyAllStart"}));
     });
 
-    // app.ports.resetServer.subscribe(function() {
-    //   connection.send(JSON.stringify({type: "resetServer"}));
-    // });
-
     app.ports.sendEndGameSignal.subscribe(function() {
       connection.send(JSON.stringify({type: "endGameSignal"}));
     });
@@ -122,6 +125,10 @@
     app.ports.sendPlayerName.subscribe(function(name) {
       //send the player name for registration
       connection.send(JSON.stringify({type: "name", name: name}));
+    });
+
+    app.ports.sendResetSignal.subscribe(function() {
+      connection.send(JSON.stringify({type: "resetServer"}));
     });
 
     app.ports.storeScore.subscribe(function(score) {

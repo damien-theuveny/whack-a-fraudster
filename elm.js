@@ -9055,7 +9055,7 @@ var _user$project$Ports$connectionOpenSignal = _elm_lang$core$Native_Platform.in
 	'connectionOpenSignal',
 	_elm_lang$core$Json_Decode$null(
 		{ctor: '_Tuple0'}));
-var _user$project$Ports$connections = _elm_lang$core$Native_Platform.incomingPort('connections', _elm_lang$core$Json_Decode$int);
+var _user$project$Ports$connections = _elm_lang$core$Native_Platform.incomingPort('connections', _elm_lang$core$Json_Decode$value);
 var _user$project$Ports$clickBox = _elm_lang$core$Native_Platform.outgoingPort(
 	'clickBox',
 	function (v) {
@@ -9096,6 +9096,11 @@ var _user$project$Ports$sendLevel = _elm_lang$core$Native_Platform.outgoingPort(
 	'sendLevel',
 	function (v) {
 		return v;
+	});
+var _user$project$Ports$sendResetSignal = _elm_lang$core$Native_Platform.outgoingPort(
+	'sendResetSignal',
+	function (v) {
+		return null;
 	});
 var _user$project$Ports$sendScores = _elm_lang$core$Native_Platform.incomingPort('sendScores', _elm_lang$core$Json_Decode$value);
 var _user$project$Ports$sendPlayerIsReady = _elm_lang$core$Native_Platform.outgoingPort(
@@ -9303,22 +9308,26 @@ var _user$project$Main$createMyProperties = F2(
 				},
 				playerNames));
 	});
-var _user$project$Main$calculateTop = F3(
-	function (thierHeight, theirY, myScreen) {
+var _user$project$Main$calculateTop = F4(
+	function (thierHeight, theirY, myScreen, theirWidth) {
 		var _p24 = myScreen;
 		if (_p24.ctor === 'Just') {
+			var _p25 = _p24._0;
+			var multiplier = ((_elm_lang$core$Native_Utils.cmp(_p25.screensize.width, 500) < 1) && (_elm_lang$core$Native_Utils.cmp(theirWidth, 500) > 0)) ? 0.8 : (((_elm_lang$core$Native_Utils.cmp(_p25.screensize.width, 500) > 0) && (_elm_lang$core$Native_Utils.cmp(theirWidth, 500) < 1)) ? 1.2 : 1);
 			return _elm_lang$core$Basics$toString(
-				(_elm_lang$core$Basics$toFloat(_p24._0.screensize.height) / 2) + (theirY - (thierHeight / 2)));
+				(_elm_lang$core$Basics$toFloat(_p25.screensize.height) / 2) + ((theirY - (thierHeight / 2)) * multiplier));
 		} else {
 			return '0';
 		}
 	});
 var _user$project$Main$calculateLeft = F3(
 	function (theirWidth, thierX, myScreen) {
-		var _p25 = myScreen;
-		if (_p25.ctor === 'Just') {
+		var _p26 = myScreen;
+		if (_p26.ctor === 'Just') {
+			var _p27 = _p26._0;
+			var multiplier = ((_elm_lang$core$Native_Utils.cmp(_p27.screensize.width, 500) < 1) && (_elm_lang$core$Native_Utils.cmp(theirWidth, 500) > 0)) ? 0.8 : (((_elm_lang$core$Native_Utils.cmp(_p27.screensize.width, 500) > 0) && (_elm_lang$core$Native_Utils.cmp(theirWidth, 500) < 1)) ? 1.2 : 1);
 			return _elm_lang$core$Basics$toString(
-				(_elm_lang$core$Basics$toFloat(_p25._0.screensize.width) / 2) + (thierX - (theirWidth / 2)));
+				(_elm_lang$core$Basics$toFloat(_p27.screensize.width) / 2) + ((thierX - (theirWidth / 2)) * multiplier));
 		} else {
 			return '0';
 		}
@@ -9327,10 +9336,10 @@ var _user$project$Main$createCursorsToShow = F3(
 	function (playerNames, playerName, myProperties) {
 		return A2(
 			_elm_lang$core$List$map,
-			function (_p26) {
-				var _p27 = _p26;
-				var _p29 = _p27.screensize;
-				var _p28 = _p27.lastLocation;
+			function (_p28) {
+				var _p29 = _p28;
+				var _p31 = _p29.screensize;
+				var _p30 = _p29.lastLocation;
 				return A2(
 					_elm_lang$html$Html$div,
 					{
@@ -9341,7 +9350,7 @@ var _user$project$Main$createCursorsToShow = F3(
 							_0: _elm_lang$html$Html_Attributes$style(
 								{
 									ctor: '::',
-									_0: {ctor: '_Tuple2', _0: 'background', _1: _p27.colour},
+									_0: {ctor: '_Tuple2', _0: 'background', _1: _p29.colour},
 									_1: {
 										ctor: '::',
 										_0: {
@@ -9351,8 +9360,8 @@ var _user$project$Main$createCursorsToShow = F3(
 												_elm_lang$core$Basics_ops['++'],
 												A3(
 													_user$project$Main$calculateLeft,
-													_elm_lang$core$Basics$toFloat(_p29.width),
-													_elm_lang$core$Basics$toFloat(_p28.x),
+													_elm_lang$core$Basics$toFloat(_p31.width),
+													_elm_lang$core$Basics$toFloat(_p30.x),
 													myProperties),
 												'px')
 										},
@@ -9363,11 +9372,12 @@ var _user$project$Main$createCursorsToShow = F3(
 												_0: 'top',
 												_1: A2(
 													_elm_lang$core$Basics_ops['++'],
-													A3(
+													A4(
 														_user$project$Main$calculateTop,
-														_elm_lang$core$Basics$toFloat(_p29.height),
-														_elm_lang$core$Basics$toFloat(_p28.y),
-														myProperties),
+														_elm_lang$core$Basics$toFloat(_p31.height),
+														_elm_lang$core$Basics$toFloat(_p30.y),
+														myProperties,
+														_elm_lang$core$Basics$toFloat(_p31.width)),
 													'px')
 											},
 											_1: {ctor: '[]'}
@@ -9381,9 +9391,9 @@ var _user$project$Main$createCursorsToShow = F3(
 			},
 			A2(
 				_elm_lang$core$List$filter,
-				function (_p30) {
-					var _p31 = _p30;
-					return !_elm_lang$core$Native_Utils.eq(_p31.name, playerName);
+				function (_p32) {
+					var _p33 = _p32;
+					return !_elm_lang$core$Native_Utils.eq(_p33.name, playerName);
 				},
 				playerNames));
 	});
@@ -9392,10 +9402,10 @@ var _user$project$Main$insertContentType = F3(
 		return A3(_elm_lang$core$Dict$insert, index, contentType, gridContents);
 	});
 var _user$project$Main$levelToInt = function (level) {
-	var _p32 = level;
-	if (_p32.ctor === 'Just') {
-		var _p33 = _p32._0;
-		switch (_p33.ctor) {
+	var _p34 = level;
+	if (_p34.ctor === 'Just') {
+		var _p35 = _p34._0;
+		switch (_p35.ctor) {
 			case 'Level1':
 				return 1;
 			case 'Level2':
@@ -9411,17 +9421,17 @@ var _user$project$Main$levelToInt = function (level) {
 };
 var _user$project$Main$isSuperBadGuyTick = F2(
 	function (superBadGuyTick, tickCount) {
-		var _p34 = superBadGuyTick;
-		if (_p34.ctor === 'Just') {
-			return _elm_lang$core$Native_Utils.eq(_p34._0, tickCount);
+		var _p36 = superBadGuyTick;
+		if (_p36.ctor === 'Just') {
+			return _elm_lang$core$Native_Utils.eq(_p36._0, tickCount);
 		} else {
 			return false;
 		}
 	});
 var _user$project$Main$getLevelConfig = function (level) {
-	var _p35 = level;
-	if (_p35.ctor === 'Just') {
-		switch (_p35._0.ctor) {
+	var _p37 = level;
+	if (_p37.ctor === 'Just') {
+		switch (_p37._0.ctor) {
 			case 'Level1':
 				return {ctor: '_Tuple3', _0: 2, _1: 1, _2: 3};
 			case 'Level2':
@@ -9523,7 +9533,6 @@ var _user$project$Main$initialModel = {
 	gridContents: _elm_lang$core$Dict$empty,
 	level: _elm_lang$core$Maybe$Nothing,
 	multiplayerMode: {
-		connectedClients: _elm_lang$core$Maybe$Nothing,
 		playerColour: 'black',
 		playerNames: {ctor: '[]'},
 		followingLead: false,
@@ -9545,22 +9554,22 @@ var _user$project$Main$Level4 = {ctor: 'Level4'};
 var _user$project$Main$Level3 = {ctor: 'Level3'};
 var _user$project$Main$Level2 = {ctor: 'Level2'};
 var _user$project$Main$Level1 = {ctor: 'Level1'};
-var _user$project$Main$scoreToLevel = function (_p36) {
-	var _p37 = _p36;
-	var translatedScore = (_p37._2 * 250) + (_p37._0 * 50);
+var _user$project$Main$scoreToLevel = function (_p38) {
+	var _p39 = _p38;
+	var translatedScore = (_p39._2 * 250) + (_p39._0 * 50);
 	return (_elm_lang$core$Native_Utils.cmp(translatedScore, 350) < 0) ? _user$project$Main$Level1 : (((_elm_lang$core$Native_Utils.cmp(translatedScore, 350) > -1) && (_elm_lang$core$Native_Utils.cmp(translatedScore, 1000) < 0)) ? _user$project$Main$Level2 : (((_elm_lang$core$Native_Utils.cmp(translatedScore, 1000) > -1) && (_elm_lang$core$Native_Utils.cmp(translatedScore, 2000) < 0)) ? _user$project$Main$Level3 : _user$project$Main$Level4));
 };
 var _user$project$Main$Client = {ctor: 'Client'};
 var _user$project$Main$SuperFraudster = {ctor: 'SuperFraudster'};
 var _user$project$Main$getSuperBadGuyFromGrid = F3(
 	function (superBadGuyTick, tickCount, gridContents) {
-		var _p38 = superBadGuyTick;
-		if (_p38.ctor === 'Just') {
-			return (_elm_lang$core$Native_Utils.cmp(_p38._0 + 2, tickCount) > -1) ? A2(
+		var _p40 = superBadGuyTick;
+		if (_p40.ctor === 'Just') {
+			return (_elm_lang$core$Native_Utils.cmp(_p40._0 + 2, tickCount) > -1) ? A2(
 				_elm_lang$core$List$filter,
-				function (_p39) {
-					var _p40 = _p39;
-					return _elm_lang$core$Native_Utils.eq(_p40._1, _user$project$Main$SuperFraudster);
+				function (_p41) {
+					var _p42 = _p41;
+					return _elm_lang$core$Native_Utils.eq(_p42._1, _user$project$Main$SuperFraudster);
 				},
 				_elm_lang$core$Dict$toList(gridContents)) : {ctor: '[]'};
 		} else {
@@ -9569,25 +9578,25 @@ var _user$project$Main$getSuperBadGuyFromGrid = F3(
 	});
 var _user$project$Main$adjustListsWithSuperBadGuy = F3(
 	function (rows, joinedLists, superBadGuyRemains) {
-		var _p41 = _elm_lang$core$List$head(superBadGuyRemains);
-		if (_p41.ctor === 'Just') {
-			var _p45 = _p41._0._0;
+		var _p43 = _elm_lang$core$List$head(superBadGuyRemains);
+		if (_p43.ctor === 'Just') {
+			var _p47 = _p43._0._0;
 			var adjustedIndex = (_elm_lang$core$Native_Utils.cmp(
-				_p45,
+				_p47,
 				_elm_lang$core$Basics$floor(
-					(_elm_lang$core$Basics$toFloat(rows) * _elm_lang$core$Basics$toFloat(rows)) / 2)) > -1) ? (_p45 - 1) : _p45;
+					(_elm_lang$core$Basics$toFloat(rows) * _elm_lang$core$Basics$toFloat(rows)) / 2)) > -1) ? (_p47 - 1) : _p47;
 			var beforeSuperBadGuy = A2(_elm_lang$core$List$take, adjustedIndex, joinedLists);
 			var afterSuperBadGuy = A2(_elm_lang$core$List$drop, adjustedIndex, joinedLists);
 			return A2(
 				_elm_lang$core$List$indexedMap,
 				F2(
-					function (index, _p42) {
-						var _p43 = _p42;
-						var _p44 = _p43._1;
+					function (index, _p44) {
+						var _p45 = _p44;
+						var _p46 = _p45._1;
 						return (_elm_lang$core$Native_Utils.cmp(
 							index,
 							_elm_lang$core$Basics$floor(
-								(_elm_lang$core$Basics$toFloat(rows) * _elm_lang$core$Basics$toFloat(rows)) / 2)) > -1) ? {ctor: '_Tuple2', _0: index + 1, _1: _p44} : {ctor: '_Tuple2', _0: index, _1: _p44};
+								(_elm_lang$core$Basics$toFloat(rows) * _elm_lang$core$Basics$toFloat(rows)) / 2)) > -1) ? {ctor: '_Tuple2', _0: index + 1, _1: _p46} : {ctor: '_Tuple2', _0: index, _1: _p46};
 					}),
 				A2(
 					_elm_lang$core$Basics_ops['++'],
@@ -9596,7 +9605,7 @@ var _user$project$Main$adjustListsWithSuperBadGuy = F3(
 						_elm_lang$core$Basics_ops['++'],
 						{
 							ctor: '::',
-							_0: {ctor: '_Tuple2', _0: _p45, _1: _user$project$Main$SuperFraudster},
+							_0: {ctor: '_Tuple2', _0: _p47, _1: _user$project$Main$SuperFraudster},
 							_1: {ctor: '[]'}
 						},
 						afterSuperBadGuy)));
@@ -9610,7 +9619,7 @@ var _user$project$Main$createContentList = F4(
 	function (emptySpaces, numberOfFraudsters, numberOfClients, isSuperBadGuyTick) {
 		var empties = A2(
 			_elm_lang$core$List$map,
-			function (_p46) {
+			function (_p48) {
 				return _user$project$Main$Empty;
 			},
 			A2(_elm_lang$core$List$range, 1, (emptySpaces - numberOfFraudsters) - numberOfClients));
@@ -9621,13 +9630,13 @@ var _user$project$Main$createContentList = F4(
 		} : {ctor: '[]'};
 		var clients = A2(
 			_elm_lang$core$List$map,
-			function (_p47) {
+			function (_p49) {
 				return _user$project$Main$Client;
 			},
 			A2(_elm_lang$core$List$range, 1, numberOfClients));
 		var fraudsters = A2(
 			_elm_lang$core$List$map,
-			function (_p48) {
+			function (_p50) {
 				return _user$project$Main$Fraudster;
 			},
 			A2(_elm_lang$core$List$range, 1, numberOfFraudsters));
@@ -9654,9 +9663,6 @@ var _user$project$Main$UpdateMultiplayerLevel = function (a) {
 var _user$project$Main$UpdateMultiplayerGridContents = function (a) {
 	return {ctor: 'UpdateMultiplayerGridContents', _0: a};
 };
-var _user$project$Main$UpdateConnections = function (a) {
-	return {ctor: 'UpdateConnections', _0: a};
-};
 var _user$project$Main$UpdateClientNames = function (a) {
 	return {ctor: 'UpdateClientNames', _0: a};
 };
@@ -9675,6 +9681,7 @@ var _user$project$Main$StartMultiplayerGame = {ctor: 'StartMultiplayerGame'};
 var _user$project$Main$StartGame = {ctor: 'StartGame'};
 var _user$project$Main$SendScore = {ctor: 'SendScore'};
 var _user$project$Main$SendName = {ctor: 'SendName'};
+var _user$project$Main$ResetServer = {ctor: 'ResetServer'};
 var _user$project$Main$Reset = {ctor: 'Reset'};
 var _user$project$Main$RequestNewName = {ctor: 'RequestNewName'};
 var _user$project$Main$ReceiveScores = function (a) {
@@ -9695,11 +9702,11 @@ var _user$project$Main$makeGrid = F2(
 			_elm_lang$core$List$map,
 			function (index) {
 				var contentClass = function () {
-					var _p49 = A2(_elm_lang$core$Dict$get, index, gridContents);
+					var _p51 = A2(_elm_lang$core$Dict$get, index, gridContents);
 					_v23_3:
 					do {
-						if (_p49.ctor === 'Just') {
-							switch (_p49._0.ctor) {
+						if (_p51.ctor === 'Just') {
+							switch (_p51._0.ctor) {
 								case 'Client':
 									return {
 										ctor: '::',
@@ -9774,10 +9781,10 @@ var _user$project$Main$makeGrid = F2(
 var _user$project$Main$inGameView = function (model) {
 	var myProperties = A2(_user$project$Main$createMyProperties, model.multiplayerMode.playerNames, model.playerName);
 	var cursorsToShow = A3(_user$project$Main$createCursorsToShow, model.multiplayerMode.playerNames, model.playerName, myProperties);
-	var _p50 = function () {
-		var _p51 = model.level;
-		if (_p51.ctor === 'Just') {
-			switch (_p51._0.ctor) {
+	var _p52 = function () {
+		var _p53 = model.level;
+		if (_p53.ctor === 'Just') {
+			switch (_p53._0.ctor) {
 				case 'Level1':
 					return {
 						ctor: '_Tuple2',
@@ -9827,8 +9834,8 @@ var _user$project$Main$inGameView = function (model) {
 			};
 		}
 	}();
-	var levelClass = _p50._0;
-	var grid = _p50._1;
+	var levelClass = _p52._0;
+	var grid = _p52._1;
 	return A2(
 		_elm_lang$html$Html$div,
 		{
@@ -9948,17 +9955,17 @@ var _user$project$Main$inGameView = function (model) {
 };
 var _user$project$Main$subscriptions = function (model) {
 	var interval = function () {
-		var _p52 = model.level;
+		var _p54 = model.level;
 		_v25_3:
 		do {
-			if (_p52.ctor === 'Just') {
-				switch (_p52._0.ctor) {
+			if (_p54.ctor === 'Just') {
+				switch (_p54._0.ctor) {
 					case 'Level1':
 						return _elm_lang$core$Time$second * 2;
 					case 'Level2':
 						return _elm_lang$core$Time$second * 1.5;
 					case 'Level3':
-						return _elm_lang$core$Time$second * 1;
+						return _elm_lang$core$Time$second * 1.25;
 					default:
 						break _v25_3;
 				}
@@ -9966,10 +9973,10 @@ var _user$project$Main$subscriptions = function (model) {
 				break _v25_3;
 			}
 		} while(false);
-		return _elm_lang$core$Time$second * 0.75;
+		return _elm_lang$core$Time$second * 1;
 	}();
-	var _p53 = model.gameState;
-	switch (_p53.ctor) {
+	var _p55 = model.gameState;
+	switch (_p55.ctor) {
 		case 'Welcome':
 			return _elm_lang$core$Platform_Sub$batch(
 				{
@@ -9979,20 +9986,24 @@ var _user$project$Main$subscriptions = function (model) {
 					_1: {
 						ctor: '::',
 						_0: _user$project$Ports$registeredAsLeadPlayer(
-							function (_p54) {
+							function (_p56) {
 								return _user$project$Main$PlayerRegistered(
-									_user$project$Main$decodeRegistration(_p54));
+									_user$project$Main$decodeRegistration(_p56));
 							}),
 						_1: {
 							ctor: '::',
 							_0: _user$project$Ports$clientNames(
-								function (_p55) {
+								function (_p57) {
 									return _user$project$Main$UpdateClientNames(
-										_user$project$Main$decodeClientNames(_p55));
+										_user$project$Main$decodeClientNames(_p57));
 								}),
 							_1: {
 								ctor: '::',
-								_0: _user$project$Ports$connections(_user$project$Main$UpdateConnections),
+								_0: _user$project$Ports$connections(
+									function (_p58) {
+										return _user$project$Main$UpdateClientNames(
+											_user$project$Main$decodeClientNames(_p58));
+									}),
 								_1: {
 									ctor: '::',
 									_0: _user$project$Ports$updateReadyCount(_user$project$Main$UpdateReadyCount),
@@ -10017,9 +10028,9 @@ var _user$project$Main$subscriptions = function (model) {
 				{
 					ctor: '::',
 					_0: _user$project$Ports$updateGridContents(
-						function (_p56) {
+						function (_p59) {
 							return _user$project$Main$UpdateMultiplayerGridContents(
-								_user$project$Main$decodeGridContents(_p56));
+								_user$project$Main$decodeGridContents(_p59));
 						}),
 					_1: {
 						ctor: '::',
@@ -10034,9 +10045,9 @@ var _user$project$Main$subscriptions = function (model) {
 								_1: {
 									ctor: '::',
 									_0: _user$project$Ports$clientNames(
-										function (_p57) {
+										function (_p60) {
 											return _user$project$Main$UpdateClientNames(
-												_user$project$Main$decodeClientNames(_p57));
+												_user$project$Main$decodeClientNames(_p60));
 										}),
 									_1: {ctor: '[]'}
 								}
@@ -10050,9 +10061,9 @@ var _user$project$Main$subscriptions = function (model) {
 					_1: {
 						ctor: '::',
 						_0: _user$project$Ports$clientNames(
-							function (_p58) {
+							function (_p61) {
 								return _user$project$Main$UpdateClientNames(
-									_user$project$Main$decodeClientNames(_p58));
+									_user$project$Main$decodeClientNames(_p61));
 							}),
 						_1: {
 							ctor: '::',
@@ -10066,16 +10077,16 @@ var _user$project$Main$subscriptions = function (model) {
 				{
 					ctor: '::',
 					_0: _user$project$Ports$sendScores(
-						function (_p59) {
+						function (_p62) {
 							return _user$project$Main$ReceiveScores(
-								_user$project$Main$decodePlayerScores(_p59));
+								_user$project$Main$decodePlayerScores(_p62));
 						}),
 					_1: {
 						ctor: '::',
 						_0: _user$project$Ports$clientNames(
-							function (_p60) {
+							function (_p63) {
 								return _user$project$Main$UpdateClientNames(
-									_user$project$Main$decodeClientNames(_p60));
+									_user$project$Main$decodeClientNames(_p63));
 							}),
 						_1: {ctor: '[]'}
 					}
@@ -10088,82 +10099,86 @@ var _user$project$Main$ChangeName = function (a) {
 var _user$project$Main$welcomeView = function (model) {
 	var myProperties = A2(_user$project$Main$createMyProperties, model.multiplayerMode.playerNames, model.playerName);
 	var cursorsToShow = A3(_user$project$Main$createCursorsToShow, model.multiplayerMode.playerNames, model.playerName, myProperties);
-	var startDisabled = function () {
-		if (model.multiplayerMode.multiplayer) {
-			var _p61 = model.multiplayerMode.connectedClients;
-			if (_p61.ctor === 'Just') {
-				var _p62 = _p61._0;
-				return (_elm_lang$core$Native_Utils.cmp(_p62, 1) > 0) ? (model.multiplayerMode.playerIsLead && (!_elm_lang$core$Native_Utils.eq(_p62 - 1, model.multiplayerMode.readyClients))) : true;
-			} else {
-				return true;
-			}
-		} else {
-			return false;
-		}
-	}();
-	var connectionsContainer = function () {
-		if (model.multiplayerMode.multiplayer) {
-			var _p63 = model.multiplayerMode.connectedClients;
-			if (_p63.ctor === 'Just') {
-				return {
+	var multiplayerReset = model.multiplayerMode.multiplayer ? {
+		ctor: '::',
+		_0: A2(
+			_elm_lang$html$Html$button,
+			{
+				ctor: '::',
+				_0: _elm_lang$html$Html_Attributes$class('server-reset'),
+				_1: {
+					ctor: '::',
+					_0: _elm_lang$html$Html_Events$onClick(_user$project$Main$ResetServer),
+					_1: {ctor: '[]'}
+				}
+			},
+			{
+				ctor: '::',
+				_0: _elm_lang$html$Html$text('Reset Server'),
+				_1: {ctor: '[]'}
+			}),
+		_1: {ctor: '[]'}
+	} : {ctor: '[]'};
+	var startDisabled = model.multiplayerMode.multiplayer ? ((_elm_lang$core$Native_Utils.cmp(
+		_elm_lang$core$List$length(model.multiplayerMode.playerNames),
+		1) > 0) ? (model.multiplayerMode.playerIsLead && (!_elm_lang$core$Native_Utils.eq(
+		_elm_lang$core$List$length(model.multiplayerMode.playerNames) - 1,
+		model.multiplayerMode.readyClients))) : true) : false;
+	var connectionsContainer = (model.multiplayerMode.multiplayer && (_elm_lang$core$Native_Utils.cmp(
+		_elm_lang$core$List$length(model.multiplayerMode.playerNames),
+		0) > 0)) ? {
+		ctor: '::',
+		_0: A2(
+			_elm_lang$html$Html$div,
+			{
+				ctor: '::',
+				_0: _elm_lang$html$Html_Attributes$class('conections-container'),
+				_1: {ctor: '[]'}
+			},
+			A2(
+				_elm_lang$core$Basics_ops['++'],
+				{
 					ctor: '::',
 					_0: A2(
-						_elm_lang$html$Html$div,
+						_elm_lang$html$Html$span,
+						{ctor: '[]'},
 						{
 							ctor: '::',
-							_0: _elm_lang$html$Html_Attributes$class('conections-container'),
+							_0: _elm_lang$html$Html$text(
+								A2(
+									_elm_lang$core$Basics_ops['++'],
+									_elm_lang$core$Basics$toString(
+										_elm_lang$core$List$length(model.multiplayerMode.playerNames)),
+									' Players Connected')),
 							_1: {ctor: '[]'}
-						},
-						A2(
-							_elm_lang$core$Basics_ops['++'],
+						}),
+					_1: {ctor: '[]'}
+				},
+				A2(
+					_elm_lang$core$List$map,
+					function (_p64) {
+						var _p65 = _p64;
+						return A2(
+							_elm_lang$html$Html$div,
 							{
 								ctor: '::',
-								_0: A2(
-									_elm_lang$html$Html$span,
-									{ctor: '[]'},
+								_0: _elm_lang$html$Html_Attributes$style(
 									{
 										ctor: '::',
-										_0: _elm_lang$html$Html$text(
-											A2(
-												_elm_lang$core$Basics_ops['++'],
-												_elm_lang$core$Basics$toString(_p63._0),
-												' Players Connected')),
+										_0: {ctor: '_Tuple2', _0: 'color', _1: _p65.colour},
 										_1: {ctor: '[]'}
 									}),
 								_1: {ctor: '[]'}
 							},
-							A2(
-								_elm_lang$core$List$map,
-								function (_p64) {
-									var _p65 = _p64;
-									return A2(
-										_elm_lang$html$Html$div,
-										{
-											ctor: '::',
-											_0: _elm_lang$html$Html_Attributes$style(
-												{
-													ctor: '::',
-													_0: {ctor: '_Tuple2', _0: 'color', _1: _p65.colour},
-													_1: {ctor: '[]'}
-												}),
-											_1: {ctor: '[]'}
-										},
-										{
-											ctor: '::',
-											_0: _elm_lang$html$Html$text(_p65.name),
-											_1: {ctor: '[]'}
-										});
-								},
-								model.multiplayerMode.playerNames))),
-					_1: {ctor: '[]'}
-				};
-			} else {
-				return {ctor: '[]'};
-			}
-		} else {
-			return {ctor: '[]'};
-		}
-	}();
+							{
+								ctor: '::',
+								_0: _elm_lang$html$Html$text(_p65.name),
+								_1: {ctor: '[]'}
+							});
+					},
+					A2(_elm_lang$core$Debug$log, 'playerNames', model.multiplayerMode.playerNames)))),
+		_1: {ctor: '[]'}
+	} : {ctor: '[]'};
 	var multiplayerNameEntry = model.multiplayerMode.requestingPlayerName ? {
 		ctor: '::',
 		_0: A2(
@@ -10290,7 +10305,7 @@ var _user$project$Main$welcomeView = function (model) {
 							_1: {ctor: '[]'}
 						}
 					},
-					cursorsToShow))));
+					A2(_elm_lang$core$Basics_ops['++'], cursorsToShow, multiplayerReset)))));
 };
 var _user$project$Main$resultsView = function (model) {
 	var _p66 = model.score;
@@ -10724,7 +10739,7 @@ var _user$project$Main$update = F2(
 						A2(_user$project$Main$isSuperBadGuyTick, model.superBadGuyTick, model.tickCount));
 					var randomNumberList = function () {
 						var _p71 = {ctor: '_Tuple2', _0: model.lastTick, _1: model.startedTime};
-						_v32_2:
+						_v30_2:
 						do {
 							if (_p71.ctor === '_Tuple2') {
 								if (_p71._0.ctor === 'Just') {
@@ -10739,11 +10754,11 @@ var _user$project$Main$update = F2(
 											_elm_lang$core$Basics$floor(_p71._1._0),
 											emptySpaces);
 									} else {
-										break _v32_2;
+										break _v30_2;
 									}
 								}
 							} else {
-								break _v32_2;
+								break _v30_2;
 							}
 						} while(false);
 						return {ctor: '[]'};
@@ -10797,7 +10812,7 @@ var _user$project$Main$update = F2(
 					var customers = _p77._1;
 					var superbadGuy = _p77._2;
 					var _p78 = A2(_elm_lang$core$Dict$get, _p79, model.gridContents);
-					_v35_3:
+					_v33_3:
 					do {
 						if (_p78.ctor === 'Just') {
 							switch (_p78._0.ctor) {
@@ -10856,10 +10871,10 @@ var _user$project$Main$update = F2(
 										_1: cmd
 									};
 								default:
-									break _v35_3;
+									break _v33_3;
 							}
 						} else {
-							break _v35_3;
+							break _v33_3;
 						}
 					} while(false);
 					return {ctor: '_Tuple2', _0: model, _1: _elm_lang$core$Platform_Cmd$none};
@@ -10970,6 +10985,13 @@ var _user$project$Main$update = F2(
 							model,
 							{gameState: _user$project$Main$Welcome}),
 						_1: _elm_lang$core$Platform_Cmd$none
+					};
+				case 'ResetServer':
+					return {
+						ctor: '_Tuple2',
+						_0: model,
+						_1: _user$project$Ports$sendResetSignal(
+							{ctor: '_Tuple0'})
 					};
 				case 'SendName':
 					var _p85 = model;
@@ -11094,29 +11116,29 @@ var _user$project$Main$update = F2(
 								case 'Level1':
 									return _elm_lang$core$Native_Utils.cmp(
 										_elm_lang$core$Time$inSeconds(_p91 - _p89._1._0),
-										20) > 0;
+										15) > 0;
 								case 'Level2':
 									return _elm_lang$core$Native_Utils.cmp(
 										_elm_lang$core$Time$inSeconds(_p91 - _p89._1._0),
-										40) > 0;
+										30) > 0;
 								case 'Level3':
 									return _elm_lang$core$Native_Utils.cmp(
 										_elm_lang$core$Time$inSeconds(_p91 - _p89._1._0),
-										60) > 0;
+										45) > 0;
 								default:
 									return _elm_lang$core$Native_Utils.cmp(
 										_elm_lang$core$Time$inSeconds(_p91 - _p89._1._0),
-										80) > 0;
+										60) > 0;
 							}
 						} else {
 							return false;
 						}
 					}();
 					if (gameEnded) {
-						var _v37 = _user$project$Main$GameEnded,
-							_v38 = model;
-						msg = _v37;
-						model = _v38;
+						var _v35 = _user$project$Main$GameEnded,
+							_v36 = model;
+						msg = _v35;
+						model = _v36;
 						continue update;
 					} else {
 						var _p90 = A2(
@@ -11166,27 +11188,11 @@ var _user$project$Main$update = F2(
 					} else {
 						return {ctor: '_Tuple2', _0: model, _1: _elm_lang$core$Platform_Cmd$none};
 					}
-				case 'UpdateConnections':
-					var _p93 = model;
-					var multiplayerMode = _p93.multiplayerMode;
-					return {
-						ctor: '_Tuple2',
-						_0: _elm_lang$core$Native_Utils.update(
-							model,
-							{
-								multiplayerMode: _elm_lang$core$Native_Utils.update(
-									multiplayerMode,
-									{
-										connectedClients: _elm_lang$core$Maybe$Just(_p69._0)
-									})
-							}),
-						_1: _elm_lang$core$Platform_Cmd$none
-					};
 				case 'UpdateMultiplayerGridContents':
 					if (_p69._0.ctor === 'Ok') {
 						var convertToContentType = function (contentString) {
-							var _p94 = contentString;
-							switch (_p94) {
+							var _p93 = contentString;
+							switch (_p93) {
 								case 'Fraudster':
 									return _user$project$Main$Fraudster;
 								case 'SuperFraudster':
@@ -11199,12 +11205,12 @@ var _user$project$Main$update = F2(
 						};
 						var mappedContents = A2(
 							_elm_lang$core$List$map,
-							function (_p95) {
-								var _p96 = _p95;
+							function (_p94) {
+								var _p95 = _p94;
 								return {
 									ctor: '_Tuple2',
-									_0: _p96._0,
-									_1: convertToContentType(_p96._1)
+									_0: _p95._0,
+									_1: convertToContentType(_p95._1)
 								};
 							},
 							_p69._0._0);
@@ -11222,8 +11228,8 @@ var _user$project$Main$update = F2(
 					}
 				case 'UpdateMultiplayerLevel':
 					var convertedIntToLevel = function () {
-						var _p97 = _p69._0;
-						switch (_p97) {
+						var _p96 = _p69._0;
+						switch (_p96) {
 							case 1:
 								return _elm_lang$core$Maybe$Just(_user$project$Main$Level1);
 							case 2:
@@ -11244,8 +11250,8 @@ var _user$project$Main$update = F2(
 						_1: _elm_lang$core$Platform_Cmd$none
 					};
 				default:
-					var _p98 = model;
-					var multiplayerMode = _p98.multiplayerMode;
+					var _p97 = model;
+					var multiplayerMode = _p97.multiplayerMode;
 					return {
 						ctor: '_Tuple2',
 						_0: _elm_lang$core$Native_Utils.update(

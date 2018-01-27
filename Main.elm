@@ -32,8 +32,7 @@ type alias Model =
     , gridContents : Dict Int ContentType
     , level : Maybe Level
     , multiplayerMode :
-        { connectedClients : Maybe Int
-        , playerColour : String
+        { playerColour : String
         , playerNames : List ClientProperties
         , followingLead : Bool
         , multiplayer : Bool
@@ -59,8 +58,7 @@ initialModel =
     , gridContents = Dict.empty
     , level = Nothing
     , multiplayerMode =
-        { connectedClients = Nothing
-        , playerColour = "black"
+        { playerColour = "black"
         , playerNames = []
         , followingLead = False
         , multiplayer = False
@@ -119,6 +117,7 @@ type Msg
     | ReceiveScores (Result String (List PlayerScore))
     | RequestNewName
     | Reset
+    | ResetServer
     | SendName
     | SendScore
     | StartGame
@@ -126,7 +125,6 @@ type Msg
     | StartedTime Time
     | Tick Time
     | UpdateClientNames (Result String (List ClientProperties))
-    | UpdateConnections Int
     | UpdateMultiplayerGridContents (Result String (List ( Int, String )))
     | UpdateMultiplayerLevel Int
     | UpdateReadyCount Int
@@ -231,16 +229,16 @@ adjustListsWithSuperBadGuy rows joinedLists superBadGuyRemains =
                 afterSuperBadGuy =
                     List.drop adjustedIndex joinedLists
             in
-                beforeSuperBadGuy
-                    ++ [ ( index, SuperFraudster ) ]
-                    ++ afterSuperBadGuy
-                    |> List.indexedMap
-                        (\index ( _, cellType ) ->
-                            if index >= floor ((toFloat rows * toFloat rows) / 2) then
-                                ( index + 1, cellType )
-                            else
-                                ( index, cellType )
-                        )
+            beforeSuperBadGuy
+                ++ [ ( index, SuperFraudster ) ]
+                ++ afterSuperBadGuy
+                |> List.indexedMap
+                    (\index ( _, cellType ) ->
+                        if index >= floor ((toFloat rows * toFloat rows) / 2) then
+                            ( index + 1, cellType )
+                        else
+                            ( index, cellType )
+                    )
 
         Nothing ->
             joinedLists
@@ -296,12 +294,12 @@ update msg model =
                     adjustListsWithSuperBadGuy rows joinedLists superBadGuyRemains
                         |> Dict.fromList
             in
-                if model.multiplayerMode.playerIsLead && model.multiplayerMode.multiplayer then
-                    ( { model | gridContents = gridContents }
-                    , Ports.sendGridContents (encodeGridContents gridContents)
-                    )
-                else
-                    ( { model | gridContents = gridContents }, Cmd.none )
+            if model.multiplayerMode.playerIsLead && model.multiplayerMode.multiplayer then
+                ( { model | gridContents = gridContents }
+                , Ports.sendGridContents (encodeGridContents gridContents)
+                )
+            else
+                ( { model | gridContents = gridContents }, Cmd.none )
 
         ClickBox index ->
             let
@@ -314,45 +312,45 @@ update msg model =
                     else
                         Cmd.none
             in
-                case Dict.get index model.gridContents of
-                    Just SuperFraudster ->
-                        ( { model
-                            | score = ( fraudsters, customers, superbadGuy + 1 )
-                            , gridContents =
-                                Dict.update
-                                    index
-                                    (Maybe.map (\previousContentTypes -> Empty))
-                                    model.gridContents
-                          }
-                        , cmd
-                        )
+            case Dict.get index model.gridContents of
+                Just SuperFraudster ->
+                    ( { model
+                        | score = ( fraudsters, customers, superbadGuy + 1 )
+                        , gridContents =
+                            Dict.update
+                                index
+                                (Maybe.map (\previousContentTypes -> Empty))
+                                model.gridContents
+                      }
+                    , cmd
+                    )
 
-                    Just Fraudster ->
-                        ( { model
-                            | score = ( fraudsters + 1, customers, superbadGuy )
-                            , gridContents =
-                                Dict.update
-                                    index
-                                    (Maybe.map (\previousContentTypes -> Empty))
-                                    model.gridContents
-                          }
-                        , cmd
-                        )
+                Just Fraudster ->
+                    ( { model
+                        | score = ( fraudsters + 1, customers, superbadGuy )
+                        , gridContents =
+                            Dict.update
+                                index
+                                (Maybe.map (\previousContentTypes -> Empty))
+                                model.gridContents
+                      }
+                    , cmd
+                    )
 
-                    Just Client ->
-                        ( { model
-                            | score = ( fraudsters, customers + 1, superbadGuy )
-                            , gridContents =
-                                Dict.update
-                                    index
-                                    (Maybe.map (\previousContentTypes -> Empty))
-                                    model.gridContents
-                          }
-                        , cmd
-                        )
+                Just Client ->
+                    ( { model
+                        | score = ( fraudsters, customers + 1, superbadGuy )
+                        , gridContents =
+                            Dict.update
+                                index
+                                (Maybe.map (\previousContentTypes -> Empty))
+                                model.gridContents
+                      }
+                    , cmd
+                    )
 
-                    _ ->
-                        ( model, Cmd.none )
+                _ ->
+                    ( model, Cmd.none )
 
         ChangeName name ->
             ( { model | playerName = name }, Cmd.none )
@@ -365,30 +363,30 @@ update msg model =
                 { multiplayerMode } =
                     model
             in
-                ( { model
-                    | multiplayerMode =
-                        { multiplayerMode
-                            | multiplayer = True
-                            , requestingPlayerName = True
-                        }
-                  }
-                , Cmd.none
-                )
+            ( { model
+                | multiplayerMode =
+                    { multiplayerMode
+                        | multiplayer = True
+                        , requestingPlayerName = True
+                    }
+              }
+            , Cmd.none
+            )
 
         PlayerRegistered (Ok data) ->
             let
                 { multiplayerMode } =
                     model
             in
-                ( { model
-                    | multiplayerMode =
-                        { multiplayerMode
-                            | playerIsLead = data.lead
-                            , playerColour = data.colour
-                        }
-                  }
-                , Cmd.none
-                )
+            ( { model
+                | multiplayerMode =
+                    { multiplayerMode
+                        | playerIsLead = data.lead
+                        , playerColour = data.colour
+                    }
+              }
+            , Cmd.none
+            )
 
         PlayerRegistered (Err error) ->
             ( model, Cmd.none )
@@ -398,15 +396,15 @@ update msg model =
                 { multiplayerMode } =
                     model
             in
-                ( { model
-                    | multiplayerMode =
-                        { multiplayerMode
-                            | multiplayer = False
-                            , requestingPlayerName = False
-                        }
-                  }
-                , Cmd.none
-                )
+            ( { model
+                | multiplayerMode =
+                    { multiplayerMode
+                        | multiplayer = False
+                        , requestingPlayerName = False
+                    }
+              }
+            , Cmd.none
+            )
 
         ReceiveScores (Ok scores) ->
             ( { model | playerScores = scores }, Cmd.none )
@@ -419,26 +417,29 @@ update msg model =
                 { multiplayerMode } =
                     model
             in
-                ( { model | multiplayerMode = { multiplayerMode | requestingPlayerName = True } }
-                , Cmd.none
-                )
+            ( { model | multiplayerMode = { multiplayerMode | requestingPlayerName = True } }
+            , Cmd.none
+            )
 
         Reset ->
             ( { model | gameState = Welcome }, Cmd.none )
+
+        ResetServer ->
+            ( model, Ports.sendResetSignal () )
 
         SendName ->
             let
                 { multiplayerMode } =
                     model
             in
-                ( { model
-                    | multiplayerMode =
-                        { multiplayerMode
-                            | requestingPlayerName = False
-                        }
-                  }
-                , Ports.sendPlayerName model.playerName
-                )
+            ( { model
+                | multiplayerMode =
+                    { multiplayerMode
+                        | requestingPlayerName = False
+                    }
+              }
+            , Ports.sendPlayerName model.playerName
+            )
 
         SendScore ->
             ( model, Ports.storeScore ( model.playerName, translateScore model.score ) )
@@ -457,14 +458,14 @@ update msg model =
                                 , superBadGuyTick = Nothing
                             }
                 in
-                    ( updatedState
-                    , Cmd.batch
-                        [ updatedCmd
-                        , Task.perform StartedTime Time.now
-                        , Ports.gameStartedByLead ()
-                        , Ports.sendGridContents (encodeGridContents updatedState.gridContents)
-                        ]
-                    )
+                ( updatedState
+                , Cmd.batch
+                    [ updatedCmd
+                    , Task.perform StartedTime Time.now
+                    , Ports.gameStartedByLead ()
+                    , Ports.sendGridContents (encodeGridContents updatedState.gridContents)
+                    ]
+                )
             else
                 ( model, Ports.sendPlayerIsReady () )
 
@@ -476,16 +477,16 @@ update msg model =
                     { multiplayerMode } =
                         model
                 in
-                    ( { model
-                        | gameState = Playing
-                        , level = Just Level1
-                        , multiplayerMode = { multiplayerMode | followingLead = True }
-                        , score = ( 0, 0, 0 )
-                        , tickCount = 0
-                        , superBadGuyTick = Nothing
-                      }
-                    , Cmd.none
-                    )
+                ( { model
+                    | gameState = Playing
+                    , level = Just Level1
+                    , multiplayerMode = { multiplayerMode | followingLead = True }
+                    , score = ( 0, 0, 0 )
+                    , tickCount = 0
+                    , superBadGuyTick = Nothing
+                  }
+                , Cmd.none
+                )
 
         StartedTime time ->
             ( { model
@@ -514,56 +515,42 @@ update msg model =
                         _ ->
                             False
             in
-                if gameEnded then
-                    update GameEnded model
-                else
-                    let
-                        ( updatedModel, updatedCmd ) =
-                            update
-                                ApplyTick
-                                { model
-                                    | lastTick = Just time
-                                    , level = Just (scoreToLevel model.score)
-                                    , tickCount = model.tickCount + 1
-                                }
-                    in
-                        ( updatedModel
-                        , Cmd.batch
-                            [ updatedCmd
-                            , Ports.sendLevel (levelToInt updatedModel.level)
-                            ]
-                        )
+            if gameEnded then
+                update GameEnded model
+            else
+                let
+                    ( updatedModel, updatedCmd ) =
+                        update
+                            ApplyTick
+                            { model
+                                | lastTick = Just time
+                                , level = Just (scoreToLevel model.score)
+                                , tickCount = model.tickCount + 1
+                            }
+                in
+                ( updatedModel
+                , Cmd.batch
+                    [ updatedCmd
+                    , Ports.sendLevel (levelToInt updatedModel.level)
+                    ]
+                )
 
         UpdateClientNames (Ok clientNames) ->
             let
                 { multiplayerMode } =
                     model
             in
-                ( { model
-                    | multiplayerMode =
-                        { multiplayerMode
-                            | playerNames = clientNames
-                        }
-                  }
-                , Cmd.none
-                )
+            ( { model
+                | multiplayerMode =
+                    { multiplayerMode
+                        | playerNames = clientNames
+                    }
+              }
+            , Cmd.none
+            )
 
         UpdateClientNames (Err error) ->
             ( model, Cmd.none )
-
-        UpdateConnections numberOfConnections ->
-            let
-                { multiplayerMode } =
-                    model
-            in
-                ( { model
-                    | multiplayerMode =
-                        { multiplayerMode
-                            | connectedClients = Just numberOfConnections
-                        }
-                  }
-                , Cmd.none
-                )
 
         UpdateMultiplayerGridContents (Ok gridContents) ->
             let
@@ -585,10 +572,10 @@ update msg model =
                     gridContents
                         |> List.map
                             (\( index, contentType ) ->
-                                ( index, (convertToContentType contentType) )
+                                ( index, convertToContentType contentType )
                             )
             in
-                ( { model | gridContents = (Dict.fromList mappedContents) }, Cmd.none )
+            ( { model | gridContents = Dict.fromList mappedContents }, Cmd.none )
 
         UpdateMultiplayerGridContents (Err error) ->
             ( model, Cmd.none )
@@ -612,21 +599,21 @@ update msg model =
                         _ ->
                             Nothing
             in
-                ( { model | level = convertedIntToLevel }, Cmd.none )
+            ( { model | level = convertedIntToLevel }, Cmd.none )
 
         UpdateReadyCount readyClients ->
             let
                 { multiplayerMode } =
                     model
             in
-                ( { model
-                    | multiplayerMode =
-                        { multiplayerMode
-                            | readyClients = readyClients
-                        }
-                  }
-                , Cmd.none
-                )
+            ( { model
+                | multiplayerMode =
+                    { multiplayerMode
+                        | readyClients = readyClients
+                    }
+              }
+            , Cmd.none
+            )
 
 
 levelToInt : Maybe Level -> Int
@@ -671,14 +658,14 @@ createContentList emptySpaces numberOfFraudsters numberOfClients isSuperBadGuyTi
             List.range 1 (emptySpaces - numberOfFraudsters - numberOfClients)
                 |> List.map (\_ -> Empty)
     in
-        fraudsters
-            ++ clients
-            ++ superbadGuy
-            ++ (if isSuperBadGuyTick then
-                    List.take (List.length empties - 1) empties
-                else
-                    empties
-               )
+    fraudsters
+        ++ clients
+        ++ superbadGuy
+        ++ (if isSuperBadGuyTick then
+                List.take (List.length empties - 1) empties
+            else
+                empties
+           )
 
 
 insertContentType : Int -> ContentType -> Dict Int ContentType -> Dict Int ContentType
@@ -690,17 +677,35 @@ calculateLeft : Float -> Float -> Maybe ClientProperties -> String
 calculateLeft theirWidth thierX myScreen =
     case myScreen of
         Just properties ->
-            (toString (((toFloat properties.screensize.width) / 2) + (thierX - (theirWidth / 2))))
+            let
+                multiplier =
+                    if properties.screensize.width <= 500 && theirWidth > 500 then
+                        0.8
+                    else if properties.screensize.width > 500 && theirWidth <= 500 then
+                        1.2
+                    else
+                        1
+            in
+            toString ((toFloat properties.screensize.width / 2) + (thierX - (theirWidth / 2)) * multiplier)
 
         Nothing ->
             "0"
 
 
-calculateTop : Float -> Float -> Maybe ClientProperties -> String
-calculateTop thierHeight theirY myScreen =
+calculateTop : Float -> Float -> Maybe ClientProperties -> Float -> String
+calculateTop thierHeight theirY myScreen theirWidth =
     case myScreen of
         Just properties ->
-            (toString (((toFloat properties.screensize.height) / 2) + (theirY - (thierHeight / 2))))
+            let
+                multiplier =
+                    if properties.screensize.width <= 500 && theirWidth > 500 then
+                        0.8
+                    else if properties.screensize.width > 500 && theirWidth <= 500 then
+                        1.2
+                    else
+                        1
+            in
+            toString ((toFloat properties.screensize.height / 2) + (theirY - (thierHeight / 2)) * multiplier)
 
         Nothing ->
             "0"
@@ -724,22 +729,19 @@ createCursorsToShow playerNames playerName myProperties =
                     , style
                         [ ( "background", colour )
                         , ( "left"
-                          , ((calculateLeft
+                          , calculateLeft
                                 (toFloat screensize.width)
                                 (toFloat lastLocation.x)
-                                (myProperties)
-                             )
+                                myProperties
                                 ++ "px"
-                            )
                           )
                         , ( "top"
-                          , ((calculateTop
+                          , calculateTop
                                 (toFloat screensize.height)
                                 (toFloat lastLocation.y)
-                                (myProperties)
-                             )
+                                myProperties
+                                (toFloat screensize.width)
                                 ++ "px"
-                            )
                           )
                         ]
                     ]
@@ -781,36 +783,38 @@ welcomeView model =
                 []
 
         connectionsContainer =
-            if model.multiplayerMode.multiplayer then
-                case model.multiplayerMode.connectedClients of
-                    Just numOfClients ->
-                        [ div [ class "conections-container" ]
-                            ([ span [] [ text (toString numOfClients ++ " Players Connected") ]
-                             ]
-                                ++ (model.multiplayerMode.playerNames
-                                        |> List.map (\{ name, colour } -> div [ style [ ( "color", colour ) ] ] [ text name ])
-                                   )
-                            )
-                        ]
-
-                    Nothing ->
-                        []
+            if model.multiplayerMode.multiplayer && (List.length model.multiplayerMode.playerNames > 0) then
+                [ div [ class "conections-container" ]
+                    ([ span [] [ text (toString (List.length model.multiplayerMode.playerNames) ++ " Players Connected") ]
+                     ]
+                        ++ (model.multiplayerMode.playerNames
+                                |> Debug.log "playerNames"
+                                |> List.map (\{ name, colour } -> div [ style [ ( "color", colour ) ] ] [ text name ])
+                           )
+                    )
+                ]
             else
                 []
 
         startDisabled =
             if model.multiplayerMode.multiplayer then
-                case model.multiplayerMode.connectedClients of
-                    Just numOfClients ->
-                        if numOfClients > 1 then
-                            model.multiplayerMode.playerIsLead && ((numOfClients - 1) /= model.multiplayerMode.readyClients)
-                        else
-                            True
-
-                    Nothing ->
-                        True
+                if List.length model.multiplayerMode.playerNames > 1 then
+                    model.multiplayerMode.playerIsLead && ((List.length model.multiplayerMode.playerNames - 1) /= model.multiplayerMode.readyClients)
+                else
+                    True
             else
                 False
+
+        multiplayerReset =
+            if model.multiplayerMode.multiplayer then
+                [ button
+                    [ class "server-reset"
+                    , onClick ResetServer
+                    ]
+                    [ text "Reset Server" ]
+                ]
+            else
+                []
 
         myProperties =
             createMyProperties model.multiplayerMode.playerNames model.playerName
@@ -818,19 +822,20 @@ welcomeView model =
         cursorsToShow =
             createCursorsToShow model.multiplayerMode.playerNames model.playerName myProperties
     in
-        div [ class "welcome-container" ]
-            (multiplayerNameEntry
-                ++ connectionsContainer
-                ++ [ h1 [] [ text "Welcome to Whack-a-Fraudster" ]
-                   , button
-                        [ class "start"
-                        , onClick StartGame
-                        , disabled startDisabled
-                        ]
-                        [ text "Start" ]
-                   ]
-                ++ cursorsToShow
-            )
+    div [ class "welcome-container" ]
+        (multiplayerNameEntry
+            ++ connectionsContainer
+            ++ [ h1 [] [ text "Welcome to Whack-a-Fraudster" ]
+               , button
+                    [ class "start"
+                    , onClick StartGame
+                    , disabled startDisabled
+                    ]
+                    [ text "Start" ]
+               ]
+            ++ cursorsToShow
+            ++ multiplayerReset
+        )
 
 
 inGameView : Model -> Html Msg
@@ -859,14 +864,14 @@ inGameView model =
         cursorsToShow =
             createCursorsToShow model.multiplayerMode.playerNames model.playerName myProperties
     in
-        div [ class "playing-container" ]
-            ([ div [ class "score" ] [ span [] [ text "Score: " ], span [] [ text (toString (translateScore model.score)) ] ]
-             , button [ class "reset", onClick Reset ] [ div [] [ text "X" ], span [] [ text "Reset" ] ]
-             , div ([ class "grid-container" ] ++ levelClass) grid
-             , button [ class "end-game", onClick GameEnded ] [ text "End Game" ]
-             ]
-                ++ cursorsToShow
-            )
+    div [ class "playing-container" ]
+        ([ div [ class "score" ] [ span [] [ text "Score: " ], span [] [ text (toString (translateScore model.score)) ] ]
+         , button [ class "reset", onClick Reset ] [ div [] [ text "X" ], span [] [ text "Reset" ] ]
+         , div ([ class "grid-container" ] ++ levelClass) grid
+         , button [ class "end-game", onClick GameEnded ] [ text "End Game" ]
+         ]
+            ++ cursorsToShow
+        )
 
 
 resultsView : Model -> Html Msg
@@ -878,45 +883,45 @@ resultsView model =
         ( fraudsters, customers, superbadGuy ) =
             model.score
     in
-        div [ class "results-container" ]
-            ([ div [ class "score" ] [ span [] [ text "Score: " ], span [] [ text (toString (translateScore model.score)) ] ]
-             , button [ class "reset", onClick Reset ] [ div [] [ text "X" ], span [] [ text "Reset" ] ]
-             , div [ class "result-graph" ]
-                [ div [ class "left-side" ]
-                    [ div [ class "label" ] [ text "Fraudsters" ]
-                    , div
-                        [ class "bar"
-                        , title ("- " ++ toString (customers * 100) ++ " points")
-                        , style
-                            [ ( "width", toString customersPercentage ++ "%" )
-                            , ( "margin-left", toString (100 - customersPercentage) ++ "%" )
-                            ]
+    div [ class "results-container" ]
+        ([ div [ class "score" ] [ span [] [ text "Score: " ], span [] [ text (toString (translateScore model.score)) ] ]
+         , button [ class "reset", onClick Reset ] [ div [] [ text "X" ], span [] [ text "Reset" ] ]
+         , div [ class "result-graph" ]
+            [ div [ class "left-side" ]
+                [ div [ class "label" ] [ text "Fraudsters" ]
+                , div
+                    [ class "bar"
+                    , title ("- " ++ toString (customers * 100) ++ " points")
+                    , style
+                        [ ( "width", toString customersPercentage ++ "%" )
+                        , ( "margin-left", toString (100 - customersPercentage) ++ "%" )
                         ]
-                        []
-                    , div [ class "label" ] [ text "Super Fraudster" ]
                     ]
-                , div [ class "seperator" ] []
-                , div [ class "right-side" ]
-                    [ div
-                        [ class "bar"
-                        , title (toString (fraudsters * 50) ++ " points")
-                        , style [ ( "width", toString fraudstersPercentage ++ "%" ) ]
-                        ]
-                        []
-                    , div [ class "label" ] [ text "Customers" ]
-                    , div
-                        [ class "bar"
-                        , title (toString (superbadGuy * 250) ++ " points")
-                        , style [ ( "width", toString superbadGuyPercentage ++ "%" ) ]
-                        ]
-                        []
-                    ]
-                ]
-             , div [ class "playing-time" ] [ text (calculatePlayingTime model.lastTick model.startedTime) ]
-             ]
-                ++ if model.multiplayerMode.multiplayer then
                     []
-                   else
+                , div [ class "label" ] [ text "Super Fraudster" ]
+                ]
+            , div [ class "seperator" ] []
+            , div [ class "right-side" ]
+                [ div
+                    [ class "bar"
+                    , title (toString (fraudsters * 50) ++ " points")
+                    , style [ ( "width", toString fraudstersPercentage ++ "%" ) ]
+                    ]
+                    []
+                , div [ class "label" ] [ text "Customers" ]
+                , div
+                    [ class "bar"
+                    , title (toString (superbadGuy * 250) ++ " points")
+                    , style [ ( "width", toString superbadGuyPercentage ++ "%" ) ]
+                    ]
+                    []
+                ]
+            ]
+         , div [ class "playing-time" ] [ text (calculatePlayingTime model.lastTick model.startedTime) ]
+         ]
+            ++ (if model.multiplayerMode.multiplayer then
+                    []
+                else
                     [ div [ class "scoreing-container" ]
                         [ div [] [ text "Submit your score" ]
                         , input [ placeholder "Player name", onInput ChangeName ] []
@@ -925,7 +930,8 @@ resultsView model =
                         , div [ class "player-scores" ] (playerScoreDisplay model.playerScores)
                         ]
                     ]
-            )
+               )
+        )
 
 
 playerScoreDisplay : List PlayerScore -> List (Html Msg)
@@ -952,19 +958,19 @@ scoreToPercentage ( fraudsters, customers, superbadGuy ) =
         total =
             fraudstersScore + customersScore + superbadGuyScore
     in
-        ( if total == 0 && fraudsters == 0 && customers == 0 then
-            0
-          else
-            (toFloat fraudstersScore / toFloat total) * 100
-        , if total == 0 && fraudsters == 0 && customers == 0 then
-            0
-          else
-            (toFloat customersScore / toFloat total) * 100
-        , if total == 0 && fraudsters == 0 && customers == 0 then
-            0
-          else
-            (toFloat superbadGuyScore / toFloat total) * 100
-        )
+    ( if total == 0 && fraudsters == 0 && customers == 0 then
+        0
+      else
+        (toFloat fraudstersScore / toFloat total) * 100
+    , if total == 0 && fraudsters == 0 && customers == 0 then
+        0
+      else
+        (toFloat customersScore / toFloat total) * 100
+    , if total == 0 && fraudsters == 0 && customers == 0 then
+        0
+      else
+        (toFloat superbadGuyScore / toFloat total) * 100
+    )
 
 
 randomList : Int -> Int -> List Int
@@ -983,14 +989,14 @@ scoreToLevel ( fraudsters, customers, superbadGuy ) =
         translatedScore =
             superbadGuy * 250 + fraudsters * 50
     in
-        if translatedScore < 350 then
-            Level1
-        else if translatedScore >= 350 && translatedScore < 1000 then
-            Level2
-        else if translatedScore >= 1000 && translatedScore < 2000 then
-            Level3
-        else
-            Level4
+    if translatedScore < 350 then
+        Level1
+    else if translatedScore >= 350 && translatedScore < 1000 then
+        Level2
+    else if translatedScore >= 1000 && translatedScore < 2000 then
+        Level3
+    else
+        Level4
 
 
 translateScore : ( Int, Int, Int ) -> Int
@@ -1037,14 +1043,14 @@ makeGrid rows gridContents =
                             _ ->
                                 []
                 in
-                    div
-                        ([ class "grid-item" ]
-                            ++ [ class ("grid-item-" ++ toString index) ]
-                            ++ logoItem
-                            ++ contentClass
-                            ++ [ onClick (ClickBox index) ]
-                        )
-                        []
+                div
+                    ([ class "grid-item" ]
+                        ++ [ class ("grid-item-" ++ toString index) ]
+                        ++ logoItem
+                        ++ contentClass
+                        ++ [ onClick (ClickBox index) ]
+                    )
+                    []
             )
 
 
@@ -1065,39 +1071,39 @@ subscriptions model =
                 _ ->
                     Time.second * 1
     in
-        case model.gameState of
-            Welcome ->
-                Sub.batch
-                    [ Ports.connectionOpenSignal (always MultiplayerConnectionOpenned)
-                    , Ports.registeredAsLeadPlayer (decodeRegistration >> PlayerRegistered)
-                    , Ports.clientNames (decodeClientNames >> UpdateClientNames)
-                    , Ports.connections UpdateConnections
-                    , Ports.updateReadyCount UpdateReadyCount
-                    , Ports.startGame (always StartMultiplayerGame)
-                    , Ports.invalidName (always RequestNewName)
-                    ]
+    case model.gameState of
+        Welcome ->
+            Sub.batch
+                [ Ports.connectionOpenSignal (always MultiplayerConnectionOpenned)
+                , Ports.registeredAsLeadPlayer (decodeRegistration >> PlayerRegistered)
+                , Ports.clientNames (decodeClientNames >> UpdateClientNames)
+                , Ports.connections (decodeClientNames >> UpdateClientNames)
+                , Ports.updateReadyCount UpdateReadyCount
+                , Ports.startGame (always StartMultiplayerGame)
+                , Ports.invalidName (always RequestNewName)
+                ]
 
-            Playing ->
-                if model.multiplayerMode.followingLead then
-                    Sub.batch
-                        [ Ports.updateGridContents (decodeGridContents >> UpdateMultiplayerGridContents)
-                        , Ports.updateClickBox ClickBox
-                        , Ports.updateLevel UpdateMultiplayerLevel
-                        , Ports.updateEndGame (always GameEnded)
-                        , Ports.clientNames (decodeClientNames >> UpdateClientNames)
-                        ]
-                else
-                    Sub.batch
-                        [ Time.every interval Tick
-                        , Ports.clientNames (decodeClientNames >> UpdateClientNames)
-                        , Ports.updateClickBox ClickBox
-                        ]
-
-            Results ->
+        Playing ->
+            if model.multiplayerMode.followingLead then
                 Sub.batch
-                    [ Ports.sendScores (decodePlayerScores >> ReceiveScores)
+                    [ Ports.updateGridContents (decodeGridContents >> UpdateMultiplayerGridContents)
+                    , Ports.updateClickBox ClickBox
+                    , Ports.updateLevel UpdateMultiplayerLevel
+                    , Ports.updateEndGame (always GameEnded)
                     , Ports.clientNames (decodeClientNames >> UpdateClientNames)
                     ]
+            else
+                Sub.batch
+                    [ Time.every interval Tick
+                    , Ports.clientNames (decodeClientNames >> UpdateClientNames)
+                    , Ports.updateClickBox ClickBox
+                    ]
+
+        Results ->
+            Sub.batch
+                [ Ports.sendScores (decodePlayerScores >> ReceiveScores)
+                , Ports.clientNames (decodeClientNames >> UpdateClientNames)
+                ]
 
 
 decodeClientNames : Json.Decode.Value -> Result String (List ClientProperties)
@@ -1176,10 +1182,10 @@ decodeGridContents =
                                     )
                                     ( [], [] )
                     in
-                        if List.isEmpty errorList then
-                            Json.Decode.succeed successList
-                        else
-                            Json.Decode.fail (String.join ", " errorList)
+                    if List.isEmpty errorList then
+                        Json.Decode.succeed successList
+                    else
+                        Json.Decode.fail (String.join ", " errorList)
                 )
         )
 
@@ -1201,7 +1207,7 @@ encodeGridContents gridContents =
                 Client ->
                     "Client"
     in
-        Dict.toList gridContents
-            |> List.map (\( index, contentType ) -> ( (toString index), (Json.Encode.string (convertContentType contentType)) ))
-            |> Json.Encode.object
-            |> Json.Encode.encode 0
+    Dict.toList gridContents
+        |> List.map (\( index, contentType ) -> ( toString index, Json.Encode.string (convertContentType contentType) ))
+        |> Json.Encode.object
+        |> Json.Encode.encode 0

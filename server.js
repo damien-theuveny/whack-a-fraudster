@@ -96,15 +96,15 @@ wsServer.on('request', function(request) {
   var userColor = false;
   var screensize = false;
   var lastLocation;
-  clientNames.push("anonymous");
+  clientNames.push({name: "anonymous", index: index});
   console.log((new Date()) + ' Connection accepted.');
 
-  for (var i=0; i < clients.length; i++) {
-    clients[i].sendUTF((JSON.stringify({
-      type: 'connections',
-      data: clients.length
-    })));
-  }
+  // for (var i=0; i < clients.length; i++) {
+  //   clients[i].sendUTF((JSON.stringify({
+  //     type: 'connections',
+  //     data: clientNames
+  //   })));
+  // }
 
   // all messages from users here.
   connection.on('message', function(data) {
@@ -238,16 +238,23 @@ wsServer.on('request', function(request) {
 
   // user disconnected
   connection.on('close', function(connection) {
-    console.log((new Date()) + " Peer " + connection.remoteAddress + " disconnected.");
+    console.log((new Date()) + " Peer " + (JSON.stringify(clientNames[index])) + " disconnected.");
     // remove user from the list of connected clients
-    clients.splice(index, 1);
-    clientNames.splice(index, 1);
+    //replace this if else with single if using an OR
+    if(clientNames[index] && clientNames[index].name === userName) {
+      clients.splice(index, 1);
+      clientNames.splice(index, 1);
+    } else if(clientNames[index] && clientNames[index].name === "anonymous" && clientNames[index].index === index) {
+      clients.splice(index, 1);
+      clientNames.splice(index, 1);
+    }
     for (var i=0; i < clients.length; i++) {
       clients[i].sendUTF(JSON.stringify({
         type: 'connections',
-        data: clients.length
+        data: clientNames
       }));
     };
+    console.log(clientNames);
   });
 });
 

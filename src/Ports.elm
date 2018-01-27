@@ -6,7 +6,7 @@ import Json.Decode
 port connectionOpenSignal : (() -> msg) -> Sub msg
 
 
-port connections : (Int -> msg) -> Sub msg
+port connections : (Json.Decode.Value -> msg) -> Sub msg
 
 
 port clickBox : Int -> Cmd msg
@@ -37,6 +37,9 @@ port sendGridContents : String -> Cmd msg
 
 
 port sendLevel : Int -> Cmd msg
+
+
+port sendResetSignal : () -> Cmd msg
 
 
 port sendScores : (Json.Decode.Value -> msg) -> Sub msg

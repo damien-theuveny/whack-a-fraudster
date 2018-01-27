@@ -62,6 +62,12 @@ button:disabled {
   background-image: url("bg.jpg");
 }
 
+.server-reset {
+  position: absolute;
+  bottom: 5px;
+  right: 5px;
+}
+
 .player-cursor {
   width: 10px;
   height: 10px;
@@ -137,6 +143,7 @@ button:disabled {
 
 .grid-logo {
   background-image: url("favicon.png");
+  background-size: contain;
 }
 
 .client {
@@ -239,4 +246,38 @@ button:disabled {
 
 button:focus {
   outline: none;
+}
+
+@media only screen and (max-width: 500px)  {
+  .grid-container.grid-container--level1 {
+    width: 120px;
+    top: calc(50% - 60px);
+    left: calc(50% - 60px);
+  }
+
+  .grid-container.grid-container--level2 {
+    width: 200px;
+    top: calc(50% - 100px);
+    left: calc(50% - 100px);
+  }
+
+  .grid-container.grid-container--level3 {
+    width: 280px;
+    top: calc(50% - 140px);
+    left: calc(50% - 140px);
+  }
+
+  .grid-container.grid-container--level4 {
+    width: 360px;
+    top: calc(50% - 180px);
+    left: calc(50% - 180px);
+  }
+
+  .grid-item {
+    height: 40px;
+    width: 40px;
+    float: left;
+    border: #000 1px solid;
+    box-sizing: border-box;
+  }
 }
